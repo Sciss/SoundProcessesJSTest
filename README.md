@@ -14,5 +14,10 @@ and comes with absolutely no warranties. To contact the author, send an e-mail t
 
 ## status
 
-We are not linking to SoundProcesses yet, but the
-[Lucre](https://git.iem.at/sciss/Lucre) base framework.
+The following references in SP are invalid:
+
+- `java.util.concurrent.ScheduledExecutorService`
+- `java.util.concurrent.ScheduledFuture`
+- `java.util.concurrent.Executors`
+- `java.lang.Runtime.addShutdownHook` (from `scala.sys.addShutdownHook`)
+
