@@ -22,10 +22,10 @@ object Test {
       import fscape.graph._
       import fscape.lucre.graph._
 
-      val l   = 1000
-      val n   = WhiteNoise().take(l)
+      val m   = 1000
+      val n   = WhiteNoise().take(m)
       val f   = LPF(n, 200.0/44100.0)
-      val rms = (RunningSum(f.squared) / l).sqrt
+      val rms = (RunningSum(f.squared).last / m).sqrt
       MkDouble("out", rms)
     }
 
@@ -43,7 +43,7 @@ object Test {
       )
 
       fsc.done ---> Act(
-        PrintLn("FScape completed. RMS is " ++ res.ampDb.toStr ++ " dBFS.")
+        PrintLn(Const("FScape completed. RMS is %1.1f dBFS.").format(res.ampDb))
       )
     }
 
