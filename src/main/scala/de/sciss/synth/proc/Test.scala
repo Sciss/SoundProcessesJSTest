@@ -8,6 +8,9 @@ import de.sciss.synth.proc
 
 object Test {
   def main(args: Array[String]): Unit = {
+//    println("sys.props.keys:")
+//    sys.props.keys.toList.sorted.foreach(println)
+
     run()
   }
 
@@ -35,12 +38,12 @@ object Test {
 
       LoadBang() ---> Act(
         PrintLn("Hello from SoundProcesses. Running FScape..."),
-        Delay(3.0)(PrintLn("user.name = " ++ Sys.Property("user.name").getOrElse("not defined"))),
+        Delay(3.0)(PrintLn("3 seconds have passed. java.vm.name = " ++ Sys.Property("java.vm.name").getOrElse("not defined"))),
         fsc.runWith("out" -> res)
       )
 
       fsc.done ---> Act(
-        PrintLn("FScape completed. RMS is " ++ res.toStr)
+        PrintLn("FScape completed. RMS is " ++ res.ampDb.toStr ++ " dBFS.")
       )
     }
 
@@ -48,6 +51,8 @@ object Test {
     implicit val undo: UndoManager[T] = UndoManager()
 
 //    import Workspace.Implicits._
+
+    fscape.lucre.FScape.init()
 
     system.step { implicit tx =>
       implicit val u: Universe[T] = Universe.dummy[T]
@@ -60,11 +65,17 @@ object Test {
       ex.attr.put("fsc", fsc)
 
       val r = proc.Runner(ex)
+//      println(r)
       r.run()
+      r.reactNow { implicit tx => state =>
+        println(s"STATE = $state")
+      }
 //
 //      implicit val ctx: expr.Context[T] = ExprContext()
 //
 //      gEx.expand.initControl()
     }
+
+    println("End of main.")
   }
 }
