@@ -21,3 +21,5 @@ The following references in SP are invalid:
 - `java.util.concurrent.Executors`
 - `java.lang.Runtime.addShutdownHook` (from `scala.sys.addShutdownHook`)
 
+See also [this Gist](https://gist.github.com/Sciss/22996370ea2a277a409775705d740993)
+
