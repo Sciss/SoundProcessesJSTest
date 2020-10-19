@@ -18,12 +18,11 @@ Compile with `sbt fastOptJS`, then open [index.html](index.html).
 
 ## status
 
-The following references in SP are invalid:
+Missing symbols for linking:
 
-- `java.util.concurrent.ScheduledExecutorService`
-- `java.util.concurrent.ScheduledFuture`
-- `java.util.concurrent.Executors`
-- `java.lang.Runtime.addShutdownHook` (from `scala.sys.addShutdownHook`)
+- `de.sciss.lucre.Artifact` referenced from `de.sciss.synth.proc.impl.AuralProcImpl$Impl`
+- `java.io.File`, ditto
+- basically going back to `proc.Runner` and `RunnerUniverseImpl` ; could try to register factory lazily
 
 See also [this Gist](https://gist.github.com/Sciss/22996370ea2a277a409775705d740993)
 

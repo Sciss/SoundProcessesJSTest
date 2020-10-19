@@ -1,5 +1,6 @@
 lazy val deps = new {
   val main = new {
+    val fscape          = "3.1.0-SNAPSHOT"
     val lucre           = "4.1.0-SNAPSHOT"
     val soundProcesses  = "4.1.0-SNAPSHOT"
   }
@@ -13,6 +14,7 @@ lazy val root = project.in(file("."))
     // This is an application with a main method
     scalaJSUseMainModuleInitializer := true,
     libraryDependencies ++= Seq(
+      "de.sciss" %%% "fscape-lucre"         % deps.main.fscape,
       "de.sciss" %%% "lucre-core"           % deps.main.lucre,
       "de.sciss" %%% "lucre-expr"           % deps.main.lucre,
       "de.sciss" %%% "soundprocesses-core"  % deps.main.soundProcesses,
