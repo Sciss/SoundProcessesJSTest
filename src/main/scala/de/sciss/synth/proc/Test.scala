@@ -1,6 +1,5 @@
 package de.sciss.synth.proc
 
-import de.sciss.lucre.Workspace
 import de.sciss.lucre.edit.UndoManager
 import de.sciss.lucre.expr.{Context, Graph, graph}
 import de.sciss.lucre.synth.InMemory
@@ -19,14 +18,14 @@ object Test {
 
       LoadBang() ---> Act(
         PrintLn("Henlo"),
-        Delay(4.0)(PrintLn("World")),
+        Delay(3.0)(PrintLn(Sys.Property("user.name").getOrElse("unknown creature"))),
       )
     }
 
     implicit val system: S = InMemory()
     implicit val undo: UndoManager[T] = UndoManager()
 
-    import Workspace.Implicits._
+//    import Workspace.Implicits._
 
     system.step { implicit tx =>
       implicit val u  : Universe[T] = Universe.dummy[T]

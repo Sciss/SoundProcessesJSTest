@@ -12,6 +12,10 @@ Like SoundProcesses, on which it depends, it is released under the
 [GNU Affero General Public License](https://github.com/Sciss/SoundProcessesJSTest/raw/main/LICENSE) v3+
 and comes with absolutely no warranties. To contact the author, send an e-mail to `contact at sciss.de`.
 
+## running
+
+Compile with `sbt fastOptJS`, then open [index.html](index.html).
+
 ## status
 
 The following references in SP are invalid:
