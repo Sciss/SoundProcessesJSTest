@@ -14,15 +14,10 @@ and comes with absolutely no warranties. To contact the author, send an e-mail t
 
 ## running
 
-Compile with `sbt fastOptJS`, then open [index.html](index.html).
+Compile with `sbt fastOptJS`, then open [index-fast.html](index-fast.html), or
+compile with `sbt fullOptJS`, then open [index.html](index.html).
 
 ## status
-
-Missing symbols for linking:
-
-- `de.sciss.lucre.Artifact` referenced from `de.sciss.synth.proc.impl.AuralProcImpl$Impl`
-- `java.io.File`, ditto
-- basically going back to `proc.Runner` and `RunnerUniverseImpl` ; could try to register factory lazily
 
 See also [this Gist](https://gist.github.com/Sciss/22996370ea2a277a409775705d740993)
 

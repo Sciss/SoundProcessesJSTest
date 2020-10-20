@@ -7,14 +7,15 @@ import de.sciss.lucre.expr
 import de.sciss.lucre.synth.InMemory
 import de.sciss.synth.proc
 
+import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
+
+@JSExportTopLevel("Test")
 object Test {
   def main(args: Array[String]): Unit = {
-//    println("sys.props.keys:")
-//    sys.props.keys.toList.sorted.foreach(println)
-
-    run()
+    println("Test initalized.")
   }
 
+  @JSExport
   def run(): Unit = {
     type S = InMemory
     type T = InMemory.Txn
