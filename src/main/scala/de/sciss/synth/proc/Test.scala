@@ -1,6 +1,7 @@
 package de.sciss.synth.proc
 
 import de.sciss.fscape
+import de.sciss.fscape.GE
 import de.sciss.lucre.edit.UndoManager
 import de.sciss.lucre.expr
 import de.sciss.lucre.synth.InMemory
@@ -18,15 +19,34 @@ object Test {
     type S = InMemory
     type T = InMemory.Txn
 
+//    val gFSc = fscape.Graph {
+//      import fscape.graph._
+//      import fscape.lucre.graph._
+//
+//      val m   = 1000
+//      val n   = WhiteNoise().take(m)
+//      val f   = LPF(n, 200.0/44100.0)
+//      val rms = (RunningSum(f.squared).last / m).sqrt
+//      MkDouble("out", rms)
+//    }
+
     val gFSc = fscape.Graph {
       import fscape.graph._
       import fscape.lucre.graph._
 
-      val m   = 1000
-      val n   = WhiteNoise().take(m)
-      val f   = LPF(n, 200.0/44100.0)
-      val rms = (RunningSum(f.squared).last / m).sqrt
-      MkDouble("out", rms)
+      val n       = WhiteNoise()
+      val SR      = 48000
+      val modFreq = Seq[GE](0.1, 0.123).map(_ / SR)
+      val freq    = SinOsc(modFreq).linExp(-1, 1, 200, 2000)
+      val f       = LPF(n, freq / SR)
+//      val nw    = 8192 * 4
+//      val norm  = NormalizeWindow(f, nw) * 0.25
+//      val normW = norm * GenWindow.Hann(nw)
+//      val lap   = OverlapAdd(normW, nw, nw / 2)
+//      val sig   = lap
+      val sig   = f * 100
+      Frames(sig.out(0)).poll(Metro(SR), "metro")
+      WebAudioOut(sig)
     }
 
     val gEx = expr.Graph {
