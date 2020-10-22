@@ -2,6 +2,7 @@ package de.sciss.synth.proc
 
 import de.sciss.fscape
 import de.sciss.fscape.GE
+import de.sciss.fscape.lucre.FScape
 import de.sciss.lucre.edit.UndoManager
 import de.sciss.lucre.expr
 import de.sciss.lucre.synth.InMemory
@@ -12,7 +13,7 @@ import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 @JSExportTopLevel("Test")
 object Test {
   def main(args: Array[String]): Unit = {
-    println("Test initalized.")
+    println("Test initialized.")
   }
 
   @JSExport
@@ -20,7 +21,13 @@ object Test {
     type S = InMemory
     type T = InMemory.Txn
 
-//    val gFSc = fscape.Graph {
+    FScape.init()
+
+    val cfg = FScape.Config()
+    cfg.blockSize = 4096
+    FScape.defaultConfig = cfg
+
+    //    val gFSc = fscape.Graph {
 //      import fscape.graph._
 //      import fscape.lucre.graph._
 //
@@ -31,7 +38,7 @@ object Test {
 //      MkDouble("out", rms)
 //    }
 
-    val gFSc = fscape.Graph {
+    lazy val gFSc0 = fscape.Graph {
       import fscape.graph._
       import fscape.lucre.graph._
 
@@ -47,6 +54,22 @@ object Test {
 //      val sig   = lap
       val sig   = f * 100
       Frames(sig.out(0)).poll(Metro(SR), "metro")
+      WebAudioOut(sig)
+    }
+
+    def any2stringadd: Any = ()
+
+    lazy val gFSc = fscape.Graph {
+      import fscape.graph._
+
+      val SR    = 44100
+      val f     = (LFSaw(0.4 / SR) * 24 + (LFSaw(Seq[GE](8.0/SR, 7.23/SR)) * 3 + 80)).midiCps // glissando function
+      val fl    = f // OnePole(f, 0.995)
+      val sin   = SinOsc(fl / SR) * 0.04
+      val echoL = 0.2 * SR
+      val echo  = CombN(sin, echoL, echoL, 4 * SR) // echoing sine wave
+      val sig   = echo
+//      Frames(sig.out(0)).poll(Metro(SR), "metro")
       WebAudioOut(sig)
     }
 
@@ -73,12 +96,10 @@ object Test {
 
 //    import Workspace.Implicits._
 
-    fscape.lucre.FScape.init()
-
     system.step { implicit tx =>
       implicit val u: Universe[T] = Universe.dummy[T]
 
-      val fsc = fscape.lucre.FScape[T]()
+      val fsc = FScape[T]()
       fsc.graph() = gFSc
 
       val ex = proc.Control[T]()

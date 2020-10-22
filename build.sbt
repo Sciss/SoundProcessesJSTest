@@ -1,8 +1,8 @@
 lazy val deps = new {
   val main = new {
     val fscape          = "3.1.0-SNAPSHOT"
-    val lucre           = "4.1.0-SNAPSHOT"
-    val soundProcesses  = "4.1.0-SNAPSHOT"
+    val lucre           = "4.1.0"
+    val soundProcesses  = "4.1.1"
   }
 }
 

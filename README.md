@@ -17,6 +17,13 @@ and comes with absolutely no warranties. To contact the author, send an e-mail t
 Compile with `sbt fastOptJS`, then open [index-fast.html](index-fast.html), or
 compile with `sbt fullOptJS`, then open [index.html](index.html).
 
+## notes
+
+From Sébastien:
+
+- `Float32Array` might perform better than `Array[Float]`
+- for Firefox performance, forcing ECMAScript 5.1 helps (instead of default ECMAScript 2015)
+
 ## status
 
 See also [this Gist](https://gist.github.com/Sciss/22996370ea2a277a409775705d740993)
