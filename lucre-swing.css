@@ -1,0 +1,15 @@
+div.lucre-border-panel-north  { grid-area: north; }
+div.lucre-border-panel-west   { grid-area: west; }
+div.lucre-border-panel-center { grid-area: center; }
+div.lucre-border-panel-east   { grid-area: east; }
+div.lucre-border-panel-south  { grid-area: south; }
+
+div.lucre-border-panel {
+  display: grid;
+  grid-template-areas:
+    'north north north'
+    'west center east'
+    'south south south';
+  grid-template-columns: 0fr 1fr 0fr;
+  grid-template-rows:    0fr 1fr 0fr;
+}

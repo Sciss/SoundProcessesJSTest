@@ -1,12 +1,15 @@
 package de.sciss.synth.proc
 
+import com.raquo.laminar.api.L.{render, documentEvents, unsafeWindowOwner}
 import de.sciss.fscape
 import de.sciss.fscape.GE
 import de.sciss.fscape.lucre.FScape
 import de.sciss.lucre.edit.UndoManager
 import de.sciss.lucre.expr
+import de.sciss.lucre.swing
 import de.sciss.lucre.synth.InMemory
 import de.sciss.synth.proc
+import org.scalajs.dom
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
@@ -14,6 +17,9 @@ import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 object Test {
   def main(args: Array[String]): Unit = {
     println("Test initialized.")
+    documentEvents.onDomContentLoaded.foreach { _ =>
+      run()
+    } (unsafeWindowOwner)
   }
 
   @JSExport
@@ -21,24 +27,26 @@ object Test {
     type S = InMemory
     type T = InMemory.Txn
 
+    SoundProcesses.init()
     FScape.init()
 
-    val cfg = FScape.Config()
-    cfg.blockSize = 4096
-    FScape.defaultConfig = cfg
+//    val cfg = FScape.Config()
+//    cfg.blockSize = 4096
+//    FScape.defaultConfig = cfg
 
-    //    val gFSc = fscape.Graph {
-//      import fscape.graph._
-//      import fscape.lucre.graph._
-//
-//      val m   = 1000
-//      val n   = WhiteNoise().take(m)
-//      val f   = LPF(n, 200.0/44100.0)
-//      val rms = (RunningSum(f.squared).last / m).sqrt
-//      MkDouble("out", rms)
-//    }
+    val gFScRMS = fscape.Graph {
+      import fscape.graph._
+      import fscape.lucre.graph._
 
-    lazy val gFSc0 = fscape.Graph {
+      val SR  = 44100
+      val m   = 100 * SR
+      val n   = WhiteNoise().take(m)
+      val f   = LPF(n, 200.0/SR)
+      val rms = (RunningSum(f.squared).last / m).sqrt
+      MkDouble("out", rms)
+    }
+
+    lazy val gFSc1 = fscape.Graph {
       import fscape.graph._
       import fscape.lucre.graph._
 
@@ -59,7 +67,7 @@ object Test {
 
     def any2stringadd: Any = ()
 
-    lazy val gFSc = fscape.Graph {
+    lazy val gFScBubbles = fscape.Graph {
       import fscape.graph._
 
       val SR    = 44100
@@ -73,7 +81,7 @@ object Test {
       WebAudioOut(sig)
     }
 
-    val gEx = expr.Graph {
+    lazy val gEx = expr.Graph {
       import expr.graph._
       import expr.ExImport._
 
@@ -91,32 +99,112 @@ object Test {
       )
     }
 
+    lazy val gW0 = swing.Graph {
+      import expr.graph._
+      import expr.ExImport._
+      import swing.graph._
+
+      val rRMS      = Runner("fsc-rms")
+      val rBubbles  = Runner("fsc-bubbles")
+      val rms       = Var(0.0)
+      val state     = Var("")
+      val rmsInfo   = Const("RMS is %1.1f dBFS.").format(rms.ampDb)
+
+      val ggAnalyze = Button("Analyze")
+      ggAnalyze.clicked ---> Act(
+        state.set("..."),
+        rRMS.runWith("out" -> rms),
+      )
+      ggAnalyze.enabled = {
+        val s = rRMS.state
+        ((s sig_== 0) || (s >= 4))
+      }
+
+      val ggStartBubbles = Button("Play")
+      val ggStopBubbles  = Button("Stop")
+      ggStartBubbles.clicked ---> rBubbles.run
+      ggStopBubbles .clicked ---> rBubbles.stop
+      ggStartBubbles.enabled = {
+        val s = rBubbles.state
+        ((s sig_== 0) || (s >= 4))
+      }
+      ggStopBubbles.enabled = !ggStartBubbles.enabled
+
+      LoadBang() ---> Act(
+        PrintLn("Hello from SoundProcesses. Running FScape..."),
+        Delay(3.0)(PrintLn("3 seconds have passed. java.vm.name = " ++ Sys.Property("java.vm.name").getOrElse("not defined"))),
+//        fsc.runWith("out" -> res)
+      )
+
+      rRMS.done ---> Act(
+        PrintLn("FScape completed."),
+        state.set(rmsInfo),
+      )
+
+      val pBubbles = FlowPanel(Label("Analog Bubbles:"), ggStartBubbles, ggStopBubbles)
+
+      val pRMS = FlowPanel(Label("Filtered Noise:"), ggAnalyze, Label(state))
+//      pRMS.hGap = 10
+
+      BorderPanel(
+        north = pBubbles,
+        south = pRMS,
+      )
+    }
+
+    lazy val gW1 = swing.Graph {
+      import swing.graph._
+
+      BorderPanel(
+        north = Label("north"),
+        south = Label("south"),
+        center= Label("center"),
+        west  = Label("west"),
+        east  = Label("east"),
+      )
+    }
+
+    val gW = gW0
+
     implicit val system: S = InMemory()
     implicit val undo: UndoManager[T] = UndoManager()
 
 //    import Workspace.Implicits._
 
-    system.step { implicit tx =>
+    val view = system.step { implicit tx =>
       implicit val u: Universe[T] = Universe.dummy[T]
 
-      val fsc = FScape[T]()
-      fsc.graph() = gFSc
+      val fscRMS = FScape[T]()
+      fscRMS.graph() = gFScRMS
+      val fscBubbles = FScape[T]()
+      fscBubbles.graph() = gFScBubbles
 
-      val ex = proc.Control[T]()
-      ex.graph() = gEx
-      ex.attr.put("fsc", fsc)
+//      val w = proc.Control[T]()
+      val w = Widget[T]()
+      w.graph() = gW
+      w.attr.put("fsc-rms"    , fscRMS    )
+      w.attr.put("fsc-bubbles", fscBubbles)
 
-      val r = proc.Runner(ex)
-//      println(r)
-      r.run()
-      r.reactNow { implicit tx => state =>
-        println(s"STATE = $state")
-      }
+//      val r = proc.Runner(w)
+////      println(r)
+//      r.run()
+//      r.reactNow { implicit tx => state =>
+//        println(s"STATE = $state")
+//      }
+
+      val wH = tx.newHandle(w)
+      implicit val ctx: expr.Context[T] = ExprContext(selfH = Some(wH))
+
+      val _view = gW.expand[T]
+      _view.initControl()
+      _view
 //
-//      implicit val ctx: expr.Context[T] = ExprContext()
 //
 //      gEx.expand.initControl()
     }
+
+    val appContainer: dom.Element = dom.document.body // .querySelector("#appContainer")
+    /*val root: RootNode =*/ render(appContainer, view.component)
 
     println("End of main.")
   }
