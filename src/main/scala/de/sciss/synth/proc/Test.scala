@@ -22,6 +22,30 @@ object Test {
     } (unsafeWindowOwner)
   }
 
+  def run2(): Unit = {
+    import com.raquo.laminar.api.L._
+    val appContainer: dom.Element = dom.document.body
+    val inp =
+      input(
+        tpe := "checkbox"
+      )
+
+    def mkObs(name: String) = Observer[dom.MouseEvent](_ => println(s"$name sees " + inp.ref.checked))
+
+    inp.amend(
+      onClick --> mkObs("observer-1")
+    )
+    inp.amend(
+      onClick --> mkObs("observer-2")
+    )
+
+    val c = label(
+      "example",
+      inp
+    )
+    render(appContainer, c)
+  }
+
   @JSExport
   def run(): Unit = {
     type S = InMemory
@@ -146,9 +170,14 @@ object Test {
       val pRMS = FlowPanel(Label("Filtered Noise:"), ggAnalyze, Label(state))
 //      pRMS.hGap = 10
 
+      val ggCheck = CheckBox("Checkbox:")
+      val checkState = ggCheck.selected()
+      checkState.changed ---> PrintLn("SELECTED = " ++ checkState.toStr ++ " / " ++ ggCheck.selected().toStr)
+
       BorderPanel(
-        north = pBubbles,
-        south = pRMS,
+        north   = pBubbles,
+        center  = ggCheck,
+        south   = pRMS,
       )
     }
 
