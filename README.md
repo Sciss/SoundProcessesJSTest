@@ -24,7 +24,35 @@ From Sébastien:
 - `Float32Array` might perform better than `Array[Float]`
 - for Firefox performance, forcing ECMAScript 5.1 helps (instead of default ECMAScript 2015)
 
+'Virtual File System' options:
+
+- IndexedDB at [MDN](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API), at [W3C](https://www.w3.org/TR/IndexedDB/)
+- FileSystem API at [MDN](https://developer.mozilla.org/en-US/docs/Web/API/FileSystem), at [CanIUse](https://caniuse.com/?search=FileSystem%20API)
+- [BrowserFS](https://jvilk.com/browserfs/2.0.0-beta/index.html)
+- [scalajs-indexeddb](https://github.com/math85360/scalajs-indexeddb/blob/master/src/main/scala/com/iz2use/indexeddb/IndexedDB.scala)
+
 ## status
 
-See also [this Gist](https://gist.github.com/Sciss/22996370ea2a277a409775705d740993)
+The components or pieces that need to come together:
 
+- [X] basic compilation of Lucre, SoundProcesses, FScape
+- [X] basic runner functionality, including Widget (LucreSwing)
+- [ ] real-time sound production
+       - [X] experimental through FScape UGen for WebAudio
+       - [ ] through dedicated DSP server on WASM in Scala Native, Rust, or SuperCollider
+- [ ] artifact management
+       - [ ] revised multi-filesystem artifact representation
+       - [ ] local virtual file system
+       - [ ] downloading and caching of artifacts
+       - [ ] probably reader support for mp3 or other compressed format
+- [ ] removal of reflection based serialization 
+       - [ ] FScape
+       - [ ] Ex/Control/Widget
+       - [ ] Patterns
+       - [ ] SynthGraph
+- [ ] export of workspaces 
+       - [ ] new database back-end that works in SJS
+       - [ ] or JSON based export/import
+- [ ] performance evaluation. Usage of web worker?
+
+For limitations of Scala.js, see also [this Gist](https://gist.github.com/Sciss/22996370ea2a277a409775705d740993)
