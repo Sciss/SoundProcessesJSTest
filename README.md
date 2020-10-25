@@ -38,8 +38,10 @@ The components or pieces that need to come together:
 - [X] basic compilation of Lucre, SoundProcesses, FScape
 - [X] basic runner functionality, including Widget (LucreSwing)
 - [ ] real-time sound production
-       - [X] experimental through FScape UGen for WebAudio
-       - [ ] through dedicated DSP server on WASM in Scala Native, Rust, or SuperCollider
+
+   - [X] experimental through FScape UGen for WebAudio
+   - [ ] through dedicated DSP server on WASM in Scala Native, Rust, or SuperCollider
+       
 - [ ] artifact management
 
    - [ ] revised multi-filesystem artifact representation
