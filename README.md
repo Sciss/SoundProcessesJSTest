@@ -41,18 +41,24 @@ The components or pieces that need to come together:
        - [X] experimental through FScape UGen for WebAudio
        - [ ] through dedicated DSP server on WASM in Scala Native, Rust, or SuperCollider
 - [ ] artifact management
-       - [ ] revised multi-filesystem artifact representation
-       - [ ] local virtual file system
-       - [ ] downloading and caching of artifacts
-       - [ ] probably reader support for mp3 or other compressed format
+
+   - [ ] revised multi-filesystem artifact representation
+   - [ ] local virtual file system
+   - [ ] downloading and caching of artifacts
+   - [ ] probably reader support for mp3 or other compressed format
+       
 - [ ] removal of reflection based serialization 
-       - [ ] FScape
-       - [ ] Ex/Control/Widget
-       - [ ] Patterns
-       - [ ] SynthGraph
+
+   - [ ] FScape
+   - [ ] Ex/Control/Widget
+   - [ ] Patterns
+   - [ ] SynthGraph
+       
 - [ ] export of workspaces 
-       - [ ] new database back-end that works in SJS
-       - [ ] or JSON based export/import
+
+   - [ ] new database back-end that works in SJS
+   - [ ] or JSON based export/import
+       
 - [ ] performance evaluation. Usage of web worker?
 
 For limitations of Scala.js, see also [this Gist](https://gist.github.com/Sciss/22996370ea2a277a409775705d740993)
