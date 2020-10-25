@@ -93,14 +93,18 @@ object Test {
 
     lazy val gFScBubbles = fscape.Graph {
       import fscape.graph._
+      import de.sciss.fscape.lucre.graph.Ops._
 
       val SR    = 44100
-      val f     = (LFSaw(0.4 / SR) * 24 + (LFSaw(Seq[GE](8.0/SR, 7.23/SR)) * 3 + 80)).midiCps // glissando function
+      val fmOff = "fm-offset".attr(80)
+      val hasVerb = "reverb".attr(1)
+      val f     = (LFSaw(0.4 / SR) * 24 + (LFSaw(Seq[GE](8.0/SR, 7.23/SR)) * 3 + fmOff)).midiCps // glissando function
       val fl    = f // OnePole(f, 0.995)
       val sin   = SinOsc(fl / SR) * 0.04
-      val echoL = 0.2 * SR
-      val echo  = CombN(sin, echoL, echoL, 4 * SR) // echoing sine wave
-      val sig   = echo
+      val sig   = If (hasVerb) Then {
+        val echoL = 0.2 * SR
+        CombN(sin, echoL, echoL, 4 * SR) // echoing sine wave
+      } Else sin
 //      Frames(sig.out(0)).poll(Metro(SR), "metro")
       WebAudioOut(sig)
     }
@@ -144,9 +148,20 @@ object Test {
         ((s sig_== 0) || (s >= 4))
       }
 
+      val slFMOff = Slider()
+      slFMOff.min     =  40
+      slFMOff.max     = 120
+      slFMOff.value() =  80
+
+      val cbReverb = CheckBox("Reverb")
+      cbReverb.selected() = true
+
       val ggStartBubbles = Button("Play")
       val ggStopBubbles  = Button("Stop")
-      ggStartBubbles.clicked ---> rBubbles.run
+      ggStartBubbles.clicked ---> rBubbles.runWith(
+        "fm-offset" -> slFMOff  .value(),
+        "reverb"    -> cbReverb .selected(),
+      )
       ggStopBubbles .clicked ---> rBubbles.stop
       ggStartBubbles.enabled = {
         val s = rBubbles.state
@@ -165,18 +180,21 @@ object Test {
         state.set(rmsInfo),
       )
 
-      val pBubbles = FlowPanel(Label("Analog Bubbles:"), ggStartBubbles, ggStopBubbles)
+      val pBubbles = FlowPanel(
+        Label("Analog Bubbles:"),
+        ggStartBubbles, ggStopBubbles,
+        Label(" Freq Offset:"), slFMOff,
+      )
 
       val pRMS = FlowPanel(Label("Filtered Noise:"), ggAnalyze, Label(state))
 //      pRMS.hGap = 10
 
-      val ggCheck = CheckBox("Checkbox:")
-      val checkState = ggCheck.selected()
-      checkState.changed ---> PrintLn("SELECTED = " ++ checkState.toStr ++ " / " ++ ggCheck.selected().toStr)
+//      val checkState = cbReverb.selected()
+//      checkState.changed ---> PrintLn("SELECTED = " ++ checkState.toStr ++ " / " ++ cbReverb.selected().toStr)
 
       BorderPanel(
         north   = pBubbles,
-        center  = ggCheck,
+        center  = cbReverb,
         south   = pRMS,
       )
     }
