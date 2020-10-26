@@ -171,6 +171,16 @@ object Test {
       val cbReverb = CheckBox("Reverb")
       cbReverb.selected() = true
 
+      val ggComboBox = ComboBox(
+        Seq("One", "Two", "Three")
+      )
+      ggComboBox.index() = 1
+
+      {
+        val idx = ggComboBox.index()
+        idx.changed ---> PrintLn("ComboBox index = " ++ idx.toStr)
+      }
+
       val ggStartBubbles = Button("Play")
       val ggStopBubbles  = Button("Stop")
       ggStartBubbles.clicked ---> rBubbles.runWith(
@@ -213,7 +223,7 @@ object Test {
 
       BorderPanel(
         north   = pBubbles,
-        center  = cbReverb,
+        center  = FlowPanel(cbReverb, ggComboBox),
         south   = pRMS,
       )
     }
