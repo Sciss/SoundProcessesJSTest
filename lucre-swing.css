@@ -17,3 +17,25 @@ div.lucre-border-panel {
 input.lucre-slider {
   vertical-align:middle;  /* better matches baseline alignment */
 }
+
+button.lucre-bang {
+  padding: 0;
+}
+
+svg.lucre-bang {
+  height: 1.4em;
+  width: 1.4em;
+}
+
+circle.lucre-bang {
+  cx: 0.68em;
+  cy: 0.68em;
+  r: 0.65em;
+  fill: none;
+  stroke: black;
+  stroke-width: 0.08em;
+}
+
+circle.lucre-bang-flash {
+  fill: black;
+}

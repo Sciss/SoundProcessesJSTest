@@ -181,6 +181,8 @@ object Test {
         idx.changed ---> PrintLn("ComboBox index = " ++ idx.toStr)
       }
 
+      val bang = Bang()
+
       val ggStartBubbles = Button("Play")
       val ggStopBubbles  = Button("Stop")
       ggStartBubbles.clicked ---> rBubbles.runWith(
@@ -205,6 +207,7 @@ object Test {
       rRMS.done ---> Act(
         PrintLn("FScape completed."),
         state.set(rmsInfo),
+        bang,
       )
 
       val pBubbles = FlowPanel(
@@ -215,7 +218,7 @@ object Test {
         Label(" LFO Freq:"), dfLFFreq,
       )
 
-      val pRMS = FlowPanel(Label("Filtered Noise:"), ggAnalyze, Label(state))
+      val pRMS = FlowPanel(Label("Filtered Noise:"), ggAnalyze, bang, Label(state))
 //      pRMS.hGap = 10
 
 //      val checkState = cbReverb.selected()
