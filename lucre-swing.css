@@ -13,3 +13,7 @@ div.lucre-border-panel {
   grid-template-columns: 0fr 1fr 0fr;
   grid-template-rows:    0fr 1fr 0fr;
 }
+
+input.lucre-slider {
+  vertical-align:middle;  /* better matches baseline alignment */
+}

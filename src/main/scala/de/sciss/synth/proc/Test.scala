@@ -95,13 +95,16 @@ object Test {
       import fscape.graph._
       import de.sciss.fscape.lucre.graph.Ops._
 
-      val SR    = 44100
-      val fmOff = "fm-offset".attr(80)
-      val hasVerb = "reverb".attr(1)
-      val f     = (LFSaw(0.4 / SR) * 24 + (LFSaw(Seq[GE](8.0/SR, 7.23/SR)) * 3 + fmOff)).midiCps // glissando function
-      val fl    = f // OnePole(f, 0.995)
-      val sin   = SinOsc(fl / SR) * 0.04
-      val sig   = If (hasVerb) Then {
+      val SR      = 44100
+      val fmOff   = "fm-offset" .attr(80)
+      val fmODepth= "fm-depth"  .attr(24)
+      val hasVerb = "reverb"    .attr(1)
+      val lfFreq  = "lf-freq"   .attr(0.4)
+      // glissando function
+      val f       = (LFSaw(lfFreq / SR) * fmODepth + (LFSaw(Seq[GE](8.0/SR, 7.23/SR)) * 3 + fmOff)).midiCps
+      val fl      = f // OnePole(f, 0.995)
+      val sin     = SinOsc(fl / SR) * 0.04
+      val sig     = If (hasVerb) Then {
         val echoL = 0.2 * SR
         CombN(sin, echoL, echoL, 4 * SR) // echoing sine wave
       } Else sin
@@ -153,6 +156,18 @@ object Test {
       slFMOff.max     = 120
       slFMOff.value() =  80
 
+      val ifFMDepth = IntField()
+      ifFMDepth.min     =   0
+      ifFMDepth.max     =  96
+      ifFMDepth.value() =  24
+      ifFMDepth.unit    = "semitones"
+
+      val dfLFFreq = DoubleField()
+      dfLFFreq.min     =    0.01
+      dfLFFreq.max     =  100.0
+      dfLFFreq.value() =    0.4
+      dfLFFreq.unit    = "Hz"
+
       val cbReverb = CheckBox("Reverb")
       cbReverb.selected() = true
 
@@ -160,6 +175,8 @@ object Test {
       val ggStopBubbles  = Button("Stop")
       ggStartBubbles.clicked ---> rBubbles.runWith(
         "fm-offset" -> slFMOff  .value(),
+        "fm-depth"  -> ifFMDepth.value(),
+        "lf-freq"   -> dfLFFreq .value(),
         "reverb"    -> cbReverb .selected(),
       )
       ggStopBubbles .clicked ---> rBubbles.stop
@@ -183,7 +200,9 @@ object Test {
       val pBubbles = FlowPanel(
         Label("Analog Bubbles:"),
         ggStartBubbles, ggStopBubbles,
-        Label(" Freq Offset:"), slFMOff,
+        Label(" Freq Mod Offset:"), slFMOff,
+        Label(" Freq Mod Depth:"), ifFMDepth,
+        Label(" LFO Freq:"), dfLFFreq,
       )
 
       val pRMS = FlowPanel(Label("Filtered Noise:"), ggAnalyze, Label(state))
