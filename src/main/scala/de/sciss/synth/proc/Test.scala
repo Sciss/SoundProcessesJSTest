@@ -66,7 +66,9 @@ object Test {
       val m   = 100 * SR
       val n   = WhiteNoise().take(m)
       val f   = LPF(n, 200.0/SR)
-      val rms = (RunningSum(f.squared).last / m).sqrt
+      val run = RunningSum(f.squared)
+      ProgressFrames(run, m)
+      val rms = (run.last / m).sqrt
       MkDouble("out", rms)
     }
 
@@ -210,15 +212,38 @@ object Test {
         bang,
       )
 
-      val pBubbles = FlowPanel(
-        Label("Analog Bubbles:"),
-        ggStartBubbles, ggStopBubbles,
+//      val pBubbles = FlowPanel(
+//        Label("Analog Bubbles:"),
+//        ggStartBubbles, ggStopBubbles,
+//        Label(" Freq Mod Offset:"), slFMOff,
+//        Label(" Freq Mod Depth:"), ifFMDepth,
+//        Label(" LFO Freq:"), dfLFFreq,
+//      )
+
+      val pBubbles = GridPanel(
+        Label("Analog Bubbles:"), FlowPanel(ggStartBubbles, ggStopBubbles),
         Label(" Freq Mod Offset:"), slFMOff,
         Label(" Freq Mod Depth:"), ifFMDepth,
         Label(" LFO Freq:"), dfLFFreq,
       )
+      pBubbles.columns        = 2
+      pBubbles.compactColumns = true
 
-      val pRMS = FlowPanel(Label("Filtered Noise:"), ggAnalyze, bang, Label(state))
+      val progBar = ProgressBar()
+      val prog    = (rRMS.progress * 100).toInt
+      progBar.value = prog
+
+//      prog.changed ---> PrintLn("PROGRESS = " ++ prog.toStr)
+
+//      val pRMS = FlowPanel(Label("Filtered Noise:"), ggAnalyze, progBar, bang, Label(state))
+
+      val pRMS = GridPanel(
+        Label("Filtered Noise:"), FlowPanel(ggAnalyze, progBar),
+        Empty(), FlowPanel(bang, Label(state)),
+      )
+      pRMS.columns        = 2
+      pRMS.compactColumns = true
+
 //      pRMS.hGap = 10
 
 //      val checkState = cbReverb.selected()
@@ -237,9 +262,35 @@ object Test {
       BorderPanel(
         north = Label("north"),
         south = Label("south"),
+//        center= Separator(),
         center= Label("center"),
         west  = Label("west"),
         east  = Label("east"),
+      )
+    }
+
+    lazy val gW2 = swing.Graph {
+      import swing.graph._
+
+      val gp1 = GridPanel(
+        Button("One"),
+        Button("Two"),
+        Button("Three"),
+        Button("Four hundred"),
+      )
+      gp1.columns = 2
+
+      val gp2 = GridPanel(
+        Button("One"),
+        Button("Two"),
+        Button("Three"),
+        Button("Four hundred"),
+      )
+      gp2.columns = 2
+      gp2.compactColumns = true
+
+      BorderPanel(
+        north = gp1, south = gp2
       )
     }
 
