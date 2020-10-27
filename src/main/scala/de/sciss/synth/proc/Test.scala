@@ -271,6 +271,7 @@ object Test {
 
     lazy val gW2 = swing.Graph {
       import swing.graph._
+      import expr.graph._
 
       val gp1 = GridPanel(
         Button("One"),
@@ -280,11 +281,16 @@ object Test {
       )
       gp1.columns = 2
 
+      val ggText = TextField()
+      val vText = ggText.text()
+      val lbText = Label(vText)
+      vText.changed ---> PrintLn(Const("NEW TEXT ") ++ vText)
+
       val gp2 = GridPanel(
         Button("One"),
         Button("Two"),
-        Button("Three"),
-        Button("Four hundred"),
+        ggText,
+        lbText,
       )
       gp2.columns = 2
       gp2.compactColumns = true
