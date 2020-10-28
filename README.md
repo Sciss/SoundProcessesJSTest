@@ -17,6 +17,8 @@ and comes with absolutely no warranties. To contact the author, send an e-mail t
 Compile with `sbt fastOptJS`, then open [index-fast.html](index-fast.html), or
 compile with `sbt fullOptJS`, then open [index.html](index.html).
 
+There may or may not be a test site up at https://www.sciss.de/temp/soundprocesses.js/ .
+
 ## notes
 
 From Sébastien:
