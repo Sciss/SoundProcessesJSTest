@@ -1,14 +1,12 @@
 package de.sciss.synth.proc
 
-import com.raquo.laminar.api.L.{render, documentEvents, unsafeWindowOwner}
+import com.raquo.laminar.api.L.{documentEvents, render, unsafeWindowOwner}
 import de.sciss.fscape
 import de.sciss.fscape.GE
 import de.sciss.fscape.lucre.FScape
 import de.sciss.lucre.edit.UndoManager
-import de.sciss.lucre.expr
-import de.sciss.lucre.swing
+import de.sciss.lucre.{expr, swing}
 import de.sciss.lucre.synth.InMemory
-import de.sciss.synth.proc
 import org.scalajs.dom
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
@@ -16,6 +14,10 @@ import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 @JSExportTopLevel("Test")
 object Test {
   def main(args: Array[String]): Unit = {
+    IndexedDBTests.run()
+  }
+
+  def runGUI(): Unit = {
     println("Test initialized.")
     documentEvents.onDomContentLoaded.foreach { _ =>
       run()
@@ -74,7 +76,6 @@ object Test {
 
     lazy val gFSc1 = fscape.Graph {
       import fscape.graph._
-      import fscape.lucre.graph._
 
       val n       = WhiteNoise()
       val SR      = 48000
@@ -94,8 +95,8 @@ object Test {
     def any2stringadd: Any = ()
 
     lazy val gFScBubbles = fscape.Graph {
-      import fscape.graph._
       import de.sciss.fscape.lucre.graph.Ops._
+      import fscape.graph._
 
       val SR      = 44100
       val fmOff   = "fm-offset" .attr(80)
@@ -115,8 +116,8 @@ object Test {
     }
 
     lazy val gEx = expr.Graph {
-      import expr.graph._
       import expr.ExImport._
+      import expr.graph._
 
       val fsc = Runner("fsc")
       val res = Var(0.0)
@@ -133,8 +134,8 @@ object Test {
     }
 
     lazy val gW0 = swing.Graph {
-      import expr.graph._
       import expr.ExImport._
+      import expr.graph._
       import swing.graph._
 
       val rRMS      = Runner("fsc-rms")
@@ -270,8 +271,8 @@ object Test {
     }
 
     lazy val gW2 = swing.Graph {
-      import swing.graph._
       import expr.graph._
+      import swing.graph._
 
       val gp1 = GridPanel(
         Button("One"),
