@@ -16,6 +16,7 @@ object Test {
   def main(args: Array[String]): Unit = {
     IndexedDBTests.run()
 //    runGUI()
+//    PlotlyTest.run()
   }
 
   def runGUI(): Unit = {

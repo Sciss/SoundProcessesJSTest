@@ -1,9 +1,10 @@
 package de.sciss.synth.proc
 
+import com.raquo.laminar.api.L.{documentEvents, unsafeWindowOwner}
 import de.sciss.audiofile.{AudioFile, AudioFileSpec, IndexedDBFile}
 
 import scala.concurrent.ExecutionContext.Implicits._
-import scala.concurrent.Future
+import scala.concurrent.{Future, Promise}
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 import scala.util.{Failure, Success}
 
@@ -13,7 +14,10 @@ object IndexedDBTests {
   def run(): Unit = {
     sys.props.put(AudioFile.KEY_DIRECT_MEMORY, true.toString)
 
-    val N = 100000
+    val prTestData = Promise[Vector[Double]]()
+    launchGUI(prTestData.future)
+
+    val N = 10000
     val BUF = new Array[Float](N)
 
     def writeFile(): Future[Double] = {
@@ -56,6 +60,8 @@ object IndexedDBTests {
               val v = bL(i)
               rms += v*v
             }
+            prTestData.success(bL.iterator.map(_.toDouble).toVector)
+            ()
           }
         }
       } yield {
@@ -85,5 +91,29 @@ object IndexedDBTests {
         println("Failed:")
         ex.printStackTrace()
     }
+  }
+
+  def launchGUI(futData: Future[Vector[Double]]): Unit = {
+    documentEvents.onDomContentLoaded.foreach { _ =>
+      futData.foreach { data =>
+        runGUI(data)
+      }
+    } (unsafeWindowOwner)
+  }
+
+  def runGUI(data: Vector[Double]): Unit = {
+    import plotly.Plotly._
+    import plotly.Scatter
+    import plotly.layout.Layout
+
+    val x = (0 to data.length).flatMap(v => v :: v :: Nil).drop(1).dropRight(1)
+    val y = data.flatMap(v => v :: v :: Nil)
+
+    val plot = Seq(
+      Scatter().withX(x).withY(y).withName("Read"),
+    )
+
+    val lay = Layout().withTitle("Curves").withWidth(512)
+    plot.plot("plot", lay)
   }
 }
