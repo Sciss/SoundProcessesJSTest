@@ -14,8 +14,8 @@ import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 @JSExportTopLevel("Test")
 object Test {
   def main(args: Array[String]): Unit = {
-//    IndexedDBTests.run()
-    runGUI()
+    IndexedDBTests.run()
+//    runGUI()
   }
 
   def runGUI(): Unit = {

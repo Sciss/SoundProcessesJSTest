@@ -1,5 +1,6 @@
 lazy val deps = new {
   val main = new {
+    val audioFile       = "2.2.0-SNAPSHOT"
     val fscape          = "3.1.0"
     val laminar         = "0.11.0"
     val lucre           = "4.1.0"
@@ -17,6 +18,7 @@ lazy val root = project.in(file("."))
     scalaJSUseMainModuleInitializer := true,
     libraryDependencies ++= Seq(
       "com.raquo" %%% "laminar"               % deps.main.laminar,
+      "de.sciss"  %%% "audiofile"             % deps.main.audioFile,
       "de.sciss"  %%% "fscape-lucre"          % deps.main.fscape,
       "de.sciss"  %%% "lucre-core"            % deps.main.lucre,
       "de.sciss"  %%% "lucre-expr"            % deps.main.lucre,
