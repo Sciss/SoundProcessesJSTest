@@ -1,7 +1,7 @@
 package de.sciss.synth.proc
 
 import com.raquo.laminar.api.L.{documentEvents, unsafeWindowOwner}
-import de.sciss.audiofile.{AudioFile, AudioFileSpec, IndexedDBFile}
+import de.sciss.audiofile.{AudioFile, AudioFileSpec, IndexedDBFile, SampleFormat}
 
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.{Future, Promise}
@@ -17,15 +17,14 @@ object IndexedDBTests {
     val prTestData = Promise[Vector[Double]]()
     launchGUI(prTestData.future)
 
-    val N = 10000
-    val BUF = new Array[Float](N)
+    val N = 8192 * 2 + 1000
 
     def writeFile(): Future[Double] = {
-      val spec = AudioFileSpec(numChannels = 1, sampleRate = 44100)
+      val spec = AudioFileSpec(numChannels = 1, sampleRate = 44100, sampleFormat = SampleFormat.Int8)
       var rms  = 0.0
       for {
         ch <- IndexedDBFile.openWrite("test.aif")
-        af <- { /*println("ch created");*/ AudioFile.openWriteAsync(ch, spec) }
+        af <- AudioFile.openWriteAsync(ch, spec)
         _  <- {
           // println("af created")
           val b   = af.buffer(N)
@@ -45,11 +44,10 @@ object IndexedDBTests {
     }
 
     def readFile(): Future[Double] = {
-      val spec = AudioFileSpec(numChannels = 1, sampleRate = 44100)
       var rms  = 0.0
       for {
         ch <- IndexedDBFile.openRead("test.aif")
-        af <- { /*println("ch created");*/ AudioFile.openReadAsync(ch) }
+        af <- AudioFile.openReadAsync(ch)
         _  <- {
           println(s"af opened. spec is ${af.spec}")
           val n   = af.numFrames.toInt
@@ -110,10 +108,10 @@ object IndexedDBTests {
     val y = data.flatMap(v => v :: v :: Nil)
 
     val plot = Seq(
-      Scatter().withX(x).withY(y).withName("Read"),
+      Scatter(x, y).withName("Read"),
     )
 
-    val lay = Layout().withTitle("Curves").withWidth(512)
+    val lay = Layout().withTitle("Read").withWidth(600)
     plot.plot("plot", lay)
   }
 }

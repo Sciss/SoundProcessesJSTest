@@ -18,8 +18,8 @@ object PlotlyTest {
     val y2 = x.map(math.exp)
 
     val plot = Seq(
-      Scatter().withX(x).withY(y1).withName("Approx twice"),
-      Scatter().withX(x).withY(y2).withName("Exp"),
+      Scatter(x, y1).withName("Approx twice"),
+      Scatter(x, y2).withName("Exp"),
     )
 
     val lay = Layout().withTitle("Curves")
