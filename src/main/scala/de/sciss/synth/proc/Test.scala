@@ -1,11 +1,13 @@
 package de.sciss.synth.proc
 
+import java.net.URI
+
 import com.raquo.laminar.api.L.{documentEvents, render, unsafeWindowOwner}
 import de.sciss.fscape
 import de.sciss.fscape.GE
 import de.sciss.fscape.lucre.FScape
 import de.sciss.lucre.edit.UndoManager
-import de.sciss.lucre.{expr, swing}
+import de.sciss.lucre.{Artifact, ArtifactLocation, expr, swing}
 import de.sciss.lucre.synth.InMemory
 import org.scalajs.dom
 
@@ -318,6 +320,11 @@ object Test {
       fscRMS.graph() = gFScRMS
       val fscBubbles = FScape[T]()
       fscBubbles.graph() = gFScBubbles
+
+      val rootURI = new URI("idb", "/", null)
+      val locRMS  = ArtifactLocation.newConst[T](rootURI)
+      val artRMS  = Artifact(locRMS, Artifact.Child("test.aif"))
+      fscRMS.attr.put("file", artRMS)
 
 //      val w = proc.Control[T]()
       val w = Widget[T]()
