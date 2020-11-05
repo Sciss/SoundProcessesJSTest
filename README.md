@@ -46,8 +46,8 @@ The components or pieces that need to come together:
        
 - [ ] artifact management
 
-   - [ ] revised multi-filesystem artifact representation
-   - [ ] local virtual file system
+   - [X] revised multi-filesystem artifact representation
+   - [X] local virtual file system
    - [ ] downloading and caching of artifacts
    - [ ] probably reader support for mp3 or other compressed format
        

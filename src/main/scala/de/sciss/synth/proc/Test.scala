@@ -14,8 +14,8 @@ import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 @JSExportTopLevel("Test")
 object Test {
   def main(args: Array[String]): Unit = {
-    IndexedDBTests.run()
-//    runGUI()
+//    IndexedDBTests.run()
+    runGUI()
 //    PlotlyTest.run()
   }
 
@@ -73,6 +73,7 @@ object Test {
       val run = RunningSum(f.squared)
       ProgressFrames(run, m)
       val rms = (run.last / m).sqrt
+      AudioFileOut("file", f, sampleRate = SR)
       MkDouble("out", rms)
     }
 

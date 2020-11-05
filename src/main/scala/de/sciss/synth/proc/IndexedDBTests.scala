@@ -1,7 +1,8 @@
 package de.sciss.synth.proc
 
 import com.raquo.laminar.api.L.{documentEvents, unsafeWindowOwner}
-import de.sciss.audiofile.{AudioFile, AudioFileSpec, IndexedDBFile, SampleFormat}
+import de.sciss.asyncfile.IndexedDBFile
+import de.sciss.audiofile.{AudioFile, AudioFileSpec, SampleFormat}
 
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.{Future, Promise}
