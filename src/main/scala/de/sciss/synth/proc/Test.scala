@@ -3,14 +3,12 @@ package de.sciss.synth.proc
 import java.net.URI
 
 import com.raquo.laminar.api.L.{documentEvents, render, unsafeWindowOwner}
-import de.sciss.asyncfile.AsyncFile
 import de.sciss.fscape
 import de.sciss.fscape.GE
 import de.sciss.fscape.lucre.FScape
-import de.sciss.log.Level
 import de.sciss.lucre.edit.UndoManager
-import de.sciss.lucre.{Artifact, ArtifactLocation, expr, swing}
 import de.sciss.lucre.synth.InMemory
+import de.sciss.lucre.{Artifact, ArtifactLocation, expr, swing}
 import org.scalajs.dom
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
@@ -62,7 +60,7 @@ object Test {
     SoundProcesses.init()
     FScape.init()
 
-    AsyncFile.log.level = Level.Debug
+//    AsyncFile.log.level = Level.Debug
 
 //    val cfg = FScape.Config()
 //    cfg.blockSize = 4096
@@ -73,10 +71,12 @@ object Test {
       import fscape.lucre.graph._
 
       val SR  = 44100
-      val m   = 20 /*100*/ * SR
+      val m   = 12 /*100*/ * SR
       val n   = WhiteNoise().take(m)
-      val freq = SinOsc(0.5/SR).linExp(-1, 1, 300, 600)
-      val f   = LPF(n, freq/SR) * 10
+      val lf   = Line(0.2, 2.0, m)
+      val fo   = Line(600, 1200, m)
+      val freq = SinOsc(lf/SR).linExp(-1, 1, 300, fo)
+      val f   = LPF(n, freq/SR) * 20
       val run = RunningSum(f.squared)
       ProgressFrames(run, m)
       val rms = (run.last / m).sqrt
@@ -89,9 +89,11 @@ object Test {
       import fscape.lucre.graph._
 
       val in  = AudioFileIn("file")
+      val SR  = in.sampleRate
       val sig = in * 4
       Length(sig).poll("in.length")
-      WebAudioOut(sig)
+      val pad = DC(0.0).take(0.5 * SR) ++ sig  // avoid stutter in the beginning
+      WebAudioOut(pad)
     }
 
     lazy val gFSc1 = fscape.Graph {
@@ -166,12 +168,12 @@ object Test {
       val rmsInfo   = Const("RMS is %1.1f dBFS.").format(rms.ampDb)
       val rmsRan    = Var(false)
 
-      val ggAnalyze = Button("Analyze")
-      ggAnalyze.clicked ---> Act(
+      val ggGenNoise = Button("Render")
+      ggGenNoise.clicked ---> Act(
         state.set("..."),
         rRMS.runWith("out" -> rms),
       )
-      ggAnalyze.enabled = {
+      ggGenNoise.enabled = {
         val s = rRMS.state
         ((s sig_== 0) || (s >= 4))
       }
@@ -275,7 +277,7 @@ object Test {
 //      val pRMS = FlowPanel(Label("Filtered Noise:"), ggAnalyze, progBar, bang, Label(state))
 
       val pRMS = GridPanel(
-        Label("Filtered Noise:"), FlowPanel(ggAnalyze, progBar, ggReplay),
+        Label("Filtered Noise:"), FlowPanel(ggGenNoise, progBar, ggReplay),
         Empty(), FlowPanel(bang, Label(state)),
       )
       pRMS.columns        = 2
