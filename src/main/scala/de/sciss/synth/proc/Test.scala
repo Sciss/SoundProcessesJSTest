@@ -3,9 +3,11 @@ package de.sciss.synth.proc
 import java.net.URI
 
 import com.raquo.laminar.api.L.{documentEvents, render, unsafeWindowOwner}
+import de.sciss.asyncfile.AsyncFile
 import de.sciss.fscape
 import de.sciss.fscape.GE
 import de.sciss.fscape.lucre.FScape
+import de.sciss.log.Level
 import de.sciss.lucre.edit.UndoManager
 import de.sciss.lucre.{Artifact, ArtifactLocation, expr, swing}
 import de.sciss.lucre.synth.InMemory
@@ -60,6 +62,8 @@ object Test {
     SoundProcesses.init()
     FScape.init()
 
+    AsyncFile.log.level = Level.Debug
+
 //    val cfg = FScape.Config()
 //    cfg.blockSize = 4096
 //    FScape.defaultConfig = cfg
@@ -69,9 +73,10 @@ object Test {
       import fscape.lucre.graph._
 
       val SR  = 44100
-      val m   = 100 * SR
+      val m   = 20 /*100*/ * SR
       val n   = WhiteNoise().take(m)
-      val f   = LPF(n, 400.0/SR) * 10
+      val freq = SinOsc(0.5/SR).linExp(-1, 1, 300, 600)
+      val f   = LPF(n, freq/SR) * 10
       val run = RunningSum(f.squared)
       ProgressFrames(run, m)
       val rms = (run.last / m).sqrt
