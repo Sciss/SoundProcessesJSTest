@@ -71,12 +71,22 @@ object Test {
       val SR  = 44100
       val m   = 100 * SR
       val n   = WhiteNoise().take(m)
-      val f   = LPF(n, 200.0/SR)
+      val f   = LPF(n, 400.0/SR) * 10
       val run = RunningSum(f.squared)
       ProgressFrames(run, m)
       val rms = (run.last / m).sqrt
       AudioFileOut("file", f, sampleRate = SR)
       MkDouble("out", rms)
+    }
+
+    val gFScReplay = fscape.Graph {
+      import fscape.graph._
+      import fscape.lucre.graph._
+
+      val in  = AudioFileIn("file")
+      val sig = in * 4
+      Length(sig).poll("in.length")
+      WebAudioOut(sig)
     }
 
     lazy val gFSc1 = fscape.Graph {
@@ -144,10 +154,12 @@ object Test {
       import swing.graph._
 
       val rRMS      = Runner("fsc-rms")
+      val rReplay   = Runner("fsc-replay")
       val rBubbles  = Runner("fsc-bubbles")
       val rms       = Var(0.0)
       val state     = Var("")
       val rmsInfo   = Const("RMS is %1.1f dBFS.").format(rms.ampDb)
+      val rmsRan    = Var(false)
 
       val ggAnalyze = Button("Analyze")
       ggAnalyze.clicked ---> Act(
@@ -158,6 +170,19 @@ object Test {
         val s = rRMS.state
         ((s sig_== 0) || (s >= 4))
       }
+
+      val ggReplay = Button("Replay")
+      ggReplay.clicked ---> Act(
+        PrintLn("run replay"),
+        rReplay.run,
+      )
+      ggReplay.enabled = rmsRan && {
+        val s = rReplay.state
+        ((s sig_== 0) || (s >= 4))
+      }
+
+      rRMS    .failed ---> PrintLn("FAILED RENDER: " ++ rRMS    .messages.mkString(", "))
+      rReplay .failed ---> PrintLn("FAILED REPLAY: " ++ rReplay .messages.mkString(", "))
 
       val slFMOff = Slider()
       slFMOff.min     =  40
@@ -215,6 +240,7 @@ object Test {
       rRMS.done ---> Act(
         PrintLn("FScape completed."),
         state.set(rmsInfo),
+        rmsRan.set(true),
         bang,
       )
 
@@ -244,7 +270,7 @@ object Test {
 //      val pRMS = FlowPanel(Label("Filtered Noise:"), ggAnalyze, progBar, bang, Label(state))
 
       val pRMS = GridPanel(
-        Label("Filtered Noise:"), FlowPanel(ggAnalyze, progBar),
+        Label("Filtered Noise:"), FlowPanel(ggAnalyze, progBar, ggReplay),
         Empty(), FlowPanel(bang, Label(state)),
       )
       pRMS.columns        = 2
@@ -318,19 +344,25 @@ object Test {
 
       val fscRMS = FScape[T]()
       fscRMS.graph() = gFScRMS
+
+      val fscReplay = FScape[T]()
+      fscReplay.graph() = gFScReplay
+
       val fscBubbles = FScape[T]()
       fscBubbles.graph() = gFScBubbles
 
       val rootURI = new URI("idb", "/", null)
       val locRMS  = ArtifactLocation.newConst[T](rootURI)
-      val artRMS  = Artifact(locRMS, Artifact.Child("test.aif"))
-      fscRMS.attr.put("file", artRMS)
+      val artRMS  = Artifact(locRMS, Artifact.Child("test.irc"))
+      fscRMS   .attr.put("file", artRMS)
+      fscReplay.attr.put("file", artRMS)
 
 //      val w = proc.Control[T]()
       val w = Widget[T]()
       w.graph() = gW
       w.attr.put("fsc-rms"    , fscRMS    )
       w.attr.put("fsc-bubbles", fscBubbles)
+      w.attr.put("fsc-replay" , fscReplay )
 
 //      val r = proc.Runner(w)
 ////      println(r)
