@@ -3,9 +3,12 @@ package de.sciss.synth.proc
 import java.net.URI
 
 import com.raquo.laminar.api.L.{documentEvents, render, unsafeWindowOwner}
+import de.sciss.asyncfile.AsyncFile
+import de.sciss.audiofile.AudioFile
 import de.sciss.fscape
 import de.sciss.fscape.GE
 import de.sciss.fscape.lucre.FScape
+import de.sciss.log.Level
 import de.sciss.lucre.edit.UndoManager
 import de.sciss.lucre.synth.InMemory
 import de.sciss.lucre.{Artifact, ArtifactLocation, expr, swing}
@@ -60,7 +63,15 @@ object Test {
     SoundProcesses.init()
     FScape.init()
 
-//    AsyncFile.log.level = Level.Debug
+//    AsyncFile.log     .level = Level.Debug
+//    AudioFile.log     .level = Level.Debug
+//    fscape.Log.stream .level = Level.Debug
+//    fscape.Log.control.level = Level.Debug
+
+    AsyncFile.log     .out = Console.out
+    AudioFile.log     .out = Console.out
+    fscape.Log.stream .out = Console.out
+    fscape.Log.control.out = Console.out
 
 //    val cfg = FScape.Config()
 //    cfg.blockSize = 4096
@@ -69,6 +80,7 @@ object Test {
     val gFScRMS = fscape.Graph {
       import fscape.graph._
       import fscape.lucre.graph._
+      import fscape.Ops._
 
       val SR  = 44100
       val m   = 12 /*100*/ * SR
@@ -87,6 +99,7 @@ object Test {
     val gFScReplay = fscape.Graph {
       import fscape.graph._
       import fscape.lucre.graph._
+      import fscape.Ops._
 
       val in  = AudioFileIn("file")
       val SR  = in.sampleRate
@@ -98,6 +111,7 @@ object Test {
 
     lazy val gFSc1 = fscape.Graph {
       import fscape.graph._
+      import fscape.Ops._
 
       val n       = WhiteNoise()
       val SR      = 48000
@@ -360,7 +374,7 @@ object Test {
 
       val rootURI = new URI("idb", "/", null)
       val locRMS  = ArtifactLocation.newConst[T](rootURI)
-      val artRMS  = Artifact(locRMS, Artifact.Child("test.irc"))
+      val artRMS  = Artifact(locRMS, Artifact.Child("test.aif"))
       fscRMS   .attr.put("file", artRMS)
       fscReplay.attr.put("file", artRMS)
 
