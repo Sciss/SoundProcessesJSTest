@@ -63,10 +63,10 @@ object Test {
     SoundProcesses.init()
     FScape.init()
 
-//    AsyncFile.log     .level = Level.Debug
-//    AudioFile.log     .level = Level.Debug
-//    fscape.Log.stream .level = Level.Debug
-//    fscape.Log.control.level = Level.Debug
+    AsyncFile.log     .level = Level.Info // Debug
+    AudioFile.log     .level = Level.Info // Debug
+    fscape.Log.stream .level = Level.Info // Debug
+    fscape.Log.control.level = Level.Info // Debug
 
     AsyncFile.log     .out = Console.out
     AudioFile.log     .out = Console.out
@@ -88,11 +88,13 @@ object Test {
       val lf   = Line(0.2, 2.0, m)
       val fo   = Line(600, 1200, m)
       val freq = SinOsc(lf/SR).linExp(-1, 1, 300, fo)
-      val f   = LPF(n, freq/SR) * 20
-      val run = RunningSum(f.squared)
-      ProgressFrames(run, m)
-      val rms = (run.last / m).sqrt
-      AudioFileOut("file", f, sampleRate = SR)
+      val f   = LPF(n, freq/SR) * 100
+      val sum = RunningSum(f.squared)
+      ProgressFrames(sum, m)
+      val rms = (sum.last / m).sqrt
+//      val f = n
+      /*val num =*/ AudioFileOut("file", f, sampleRate = SR)
+//      Length(num).poll("POLLED")
       MkDouble("out", rms)
     }
 
@@ -103,7 +105,7 @@ object Test {
 
       val in  = AudioFileIn("file")
       val SR  = in.sampleRate
-      val sig = in * 4
+      val sig = in
       Length(sig).poll("in.length")
       val pad = DC(0.0).take(0.5 * SR) ++ sig  // avoid stutter in the beginning
       WebAudioOut(pad)
