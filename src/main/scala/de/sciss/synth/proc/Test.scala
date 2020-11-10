@@ -77,7 +77,7 @@ object Test {
 //    cfg.blockSize = 4096
 //    FScape.defaultConfig = cfg
 
-    val gFScRMS = fscape.Graph {
+    val gFScRMS_OLD = fscape.Graph {
       import fscape.graph._
       import fscape.lucre.graph._
       import fscape.Ops._
@@ -90,6 +90,29 @@ object Test {
       val freq = SinOsc(lf/SR).linExp(-1, 1, 300, fo)
       val f   = LPF(n, freq/SR) * 100
       val sum = RunningSum(f.squared)
+      ProgressFrames(sum, m)
+      val rms = (sum.last / m).sqrt
+      //      val f = n
+      /*val num =*/ AudioFileOut("file", f, sampleRate = SR)
+      //      Length(num).poll("POLLED")
+      MkDouble("out", rms)
+    }
+
+    val gFScRMS = fscape.Graph {
+      import fscape.graph._
+      import fscape.lucre.graph._
+      import fscape.lucre.graph.Ops._
+
+      val SR      = 44100 // XXX TODO: for real-time input, should use correct value
+      val m       = 12 /*100*/ * SR
+      val srcIdx  = "source".attr(0)
+      val source  = If (srcIdx sig_== 0) Then WhiteNoise() Else WebAudioIn()
+      val n       = source.take(m)
+      val lf      = Line(0.2, 2.0, m)
+      val fo      = Line(600, 1200, m)
+      val freq    = SinOsc(lf/SR).linExp(-1, 1, 300, fo)
+      val f       = LPF(n, freq/SR) * 100
+      val sum     = RunningSum(f.squared)
       ProgressFrames(sum, m)
       val rms = (sum.last / m).sqrt
 //      val f = n
@@ -184,10 +207,18 @@ object Test {
       val rmsInfo   = Const("RMS is %1.1f dBFS.").format(rms.ampDb)
       val rmsRan    = Var(false)
 
+      val ggFilterSource = ComboBox(
+        Seq("WhiteNoise", "Mic Input")
+      )
+      ggFilterSource.index() = 0
+
       val ggGenNoise = Button("Render")
       ggGenNoise.clicked ---> Act(
         state.set("..."),
-        rRMS.runWith("out" -> rms),
+        rRMS.runWith(
+          "source"  -> ggFilterSource.index(),
+          "out"     -> rms,
+        ),
       )
       ggGenNoise.enabled = {
         val s = rRMS.state
@@ -227,13 +258,8 @@ object Test {
       val cbReverb = CheckBox("Reverb")
       cbReverb.selected() = true
 
-      val ggComboBox = ComboBox(
-        Seq("One", "Two", "Three")
-      )
-      ggComboBox.index() = 1
-
       {
-        val idx = ggComboBox.index()
+        val idx = ggFilterSource.index()
         idx.changed ---> PrintLn("ComboBox index = " ++ idx.toStr)
       }
 
@@ -293,7 +319,7 @@ object Test {
 //      val pRMS = FlowPanel(Label("Filtered Noise:"), ggAnalyze, progBar, bang, Label(state))
 
       val pRMS = GridPanel(
-        Label("Filtered Noise:"), FlowPanel(ggGenNoise, progBar, ggReplay),
+        Label("Freq Filter. Source:"), FlowPanel(ggFilterSource, ggGenNoise, progBar, ggReplay),
         Empty(), FlowPanel(bang, Label(state)),
       )
       pRMS.columns        = 2
@@ -306,7 +332,7 @@ object Test {
 
       BorderPanel(
         north   = pBubbles,
-        center  = FlowPanel(cbReverb, ggComboBox),
+        center  = FlowPanel(cbReverb), //, ggFilterSource),
         south   = pRMS,
       )
     }
