@@ -11,7 +11,8 @@ import de.sciss.fscape.lucre.FScape
 import de.sciss.log.Level
 import de.sciss.lucre.edit.UndoManager
 import de.sciss.lucre.synth.InMemory
-import de.sciss.lucre.{Artifact, ArtifactLocation, expr, swing}
+import de.sciss.lucre.{Artifact => LArtifact, ArtifactLocation => LArtifactLocation, expr, swing}
+import de.sciss.synth.proc
 import org.scalajs.dom
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
@@ -195,7 +196,7 @@ object Test {
     }
 
     lazy val gW0 = swing.Graph {
-      import expr.ExImport._
+      import proc.ExImport._
       import expr.graph._
       import swing.graph._
 
@@ -318,8 +319,12 @@ object Test {
 
 //      val pRMS = FlowPanel(Label("Filtered Noise:"), ggAnalyze, progBar, bang, Label(state))
 
+      val ggDeleteFile = Button("Delete File")
+      ggDeleteFile.clicked ---> (Artifact("file"): Ex[URI]).delete
+
       val pRMS = GridPanel(
-        Label("Freq Filter. Source:"), FlowPanel(ggFilterSource, ggGenNoise, progBar, ggReplay),
+        Label("Freq Filter. Source:"),
+          FlowPanel(ggFilterSource, ggGenNoise, progBar, ggReplay, ggDeleteFile),
         Empty(), FlowPanel(bang, Label(state)),
       )
       pRMS.columns        = 2
@@ -401,17 +406,19 @@ object Test {
       fscBubbles.graph() = gFScBubbles
 
       val rootURI = new URI("idb", "/", null)
-      val locRMS  = ArtifactLocation.newConst[T](rootURI)
-      val artRMS  = Artifact(locRMS, Artifact.Child("test.aif"))
+      val locRMS  = LArtifactLocation.newConst[T](rootURI)
+      val artRMS  = LArtifact(locRMS, LArtifact.Child("test.aif"))
       fscRMS   .attr.put("file", artRMS)
       fscReplay.attr.put("file", artRMS)
 
 //      val w = proc.Control[T]()
       val w = Widget[T]()
+      val wAttr = w.attr
       w.graph() = gW
-      w.attr.put("fsc-rms"    , fscRMS    )
-      w.attr.put("fsc-bubbles", fscBubbles)
-      w.attr.put("fsc-replay" , fscReplay )
+      wAttr.put("fsc-rms"     , fscRMS    )
+      wAttr.put("fsc-bubbles" , fscBubbles)
+      wAttr.put("fsc-replay"  , fscReplay )
+      wAttr.put("file"        , artRMS    )
 
 //      val r = proc.Runner(w)
 ////      println(r)
