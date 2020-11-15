@@ -1,4 +1,4 @@
-//package de.sciss.synth.proc
+//package de.sciss.proc
 //
 //import com.raquo.laminar.api.L.{documentEvents, unsafeWindowOwner}
 //import de.sciss.asyncfile.IndexedDBFile

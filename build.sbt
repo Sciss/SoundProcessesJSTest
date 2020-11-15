@@ -1,12 +1,12 @@
 lazy val deps = new {
   val main = new {
-    val audioFile       = "2.2.0-SNAPSHOT"
-    val fscape          = "3.2.0-SNAPSHOT"
+    val audioFile       = "2.3.1"
+    val fscape          = "3.2.0"
     val laminar         = "0.11.0"
-    val lucre           = "4.2.0-SNAPSHOT"
-    val lucreSwing      = "2.3.0-SNAPSHOT"
+    val lucre           = "4.2.0"
+    val lucreSwing      = "2.3.0"
     val plotly          = "0.8.0"
-    val soundProcesses  = "4.3.0-SNAPSHOT"
+    val soundProcesses  = "4.3.0"
   }
 }
 

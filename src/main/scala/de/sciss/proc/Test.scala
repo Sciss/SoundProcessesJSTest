@@ -1,18 +1,16 @@
-package de.sciss.synth.proc
+package de.sciss.proc
 
 import java.net.URI
 
 import com.raquo.laminar.api.L.{documentEvents, render, unsafeWindowOwner}
 import de.sciss.asyncfile.AsyncFile
 import de.sciss.audiofile.AudioFile
-import de.sciss.fscape
 import de.sciss.fscape.GE
-import de.sciss.fscape.lucre.FScape
 import de.sciss.log.Level
 import de.sciss.lucre.edit.UndoManager
 import de.sciss.lucre.synth.InMemory
-import de.sciss.lucre.{Artifact => LArtifact, ArtifactLocation => LArtifactLocation, expr, swing}
-import de.sciss.synth.proc
+import de.sciss.lucre.{expr, swing, Artifact => LArtifact, ArtifactLocation => LArtifactLocation}
+import de.sciss.{fscape, proc}
 import org.scalajs.dom
 
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
@@ -20,16 +18,16 @@ import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 @JSExportTopLevel("Test")
 object Test {
   def main(args: Array[String]): Unit = {
-//    IndexedDBTests.run()
+    //    IndexedDBTests.run()
     runGUI()
-//    PlotlyTest.run()
+    //    PlotlyTest.run()
   }
 
   def runGUI(): Unit = {
     println("Test initialized.")
     documentEvents.onDomContentLoaded.foreach { _ =>
       run()
-    } (unsafeWindowOwner)
+    }(unsafeWindowOwner)
   }
 
   def run2(): Unit = {
@@ -64,32 +62,32 @@ object Test {
     SoundProcesses.init()
     FScape.init()
 
-    AsyncFile.log     .level = Level.Info // Debug
-    AudioFile.log     .level = Level.Info // Debug
-    fscape.Log.stream .level = Level.Info // Debug
+    AsyncFile.log.level = Level.Info // Debug
+    AudioFile.log.level = Level.Info // Debug
+    fscape.Log.stream.level = Level.Info // Debug
     fscape.Log.control.level = Level.Info // Debug
 
-    AsyncFile.log     .out = Console.out
-    AudioFile.log     .out = Console.out
-    fscape.Log.stream .out = Console.out
+    AsyncFile.log.out = Console.out
+    AudioFile.log.out = Console.out
+    fscape.Log.stream.out = Console.out
     fscape.Log.control.out = Console.out
 
-//    val cfg = FScape.Config()
-//    cfg.blockSize = 4096
-//    FScape.defaultConfig = cfg
+    //    val cfg = FScape.Config()
+    //    cfg.blockSize = 4096
+    //    FScape.defaultConfig = cfg
 
     val gFScRMS_OLD = fscape.Graph {
+      import fscape.Ops._
       import fscape.graph._
       import fscape.lucre.graph._
-      import fscape.Ops._
 
-      val SR  = 44100
-      val m   = 12 /*100*/ * SR
-      val n   = WhiteNoise().take(m)
-      val lf   = Line(0.2, 2.0, m)
-      val fo   = Line(600, 1200, m)
-      val freq = SinOsc(lf/SR).linExp(-1, 1, 300, fo)
-      val f   = LPF(n, freq/SR) * 100
+      val SR = 44100
+      val m = 12 /*100*/ * SR
+      val n = WhiteNoise().take(m)
+      val lf = Line(0.2, 2.0, m)
+      val fo = Line(600, 1200, m)
+      val freq = SinOsc(lf / SR).linExp(-1, 1, 300, fo)
+      val f = LPF(n, freq / SR) * 100
       val sum = RunningSum(f.squared)
       ProgressFrames(sum, m)
       val rms = (sum.last / m).sqrt
@@ -101,55 +99,65 @@ object Test {
 
     val gFScRMS = fscape.Graph {
       import fscape.graph._
-      import fscape.lucre.graph._
       import fscape.lucre.graph.Ops._
+      import fscape.lucre.graph._
 
-      val SR      = 44100 // XXX TODO: for real-time input, should use correct value
-      val m       = 12 /*100*/ * SR
-      val srcIdx  = "source".attr(0)
-      val source  = If (srcIdx sig_== 0) Then WhiteNoise() Else WebAudioIn()
-      val n       = source.take(m)
-      val lf      = Line(0.2, 2.0, m)
-      val fo      = Line(600, 1200, m)
-      val freq    = SinOsc(lf/SR).linExp(-1, 1, 300, fo)
-      val f       = LPF(n, freq/SR) * 100
-      val sum     = RunningSum(f.squared)
+      val SR = 44100 // XXX TODO: for real-time input, should use correct value
+      val m = 12 /*100*/ * SR
+      val srcIdx = "source".attr(0)
+      val source = If(srcIdx sig_== 0) Then WhiteNoise() Else WebAudioIn()
+      val n = source.take(m)
+      val lf = Line(0.2, 2.0, m)
+      val fo = Line(600, 1200, m)
+      val freq = SinOsc(lf / SR).linExp(-1, 1, 300, fo)
+      val f = LPF(n, freq / SR) * 100
+
+      //      val f = {
+      ////        val kernelLen = 256
+      ////        val kernel    = LFSaw(440/SR).take(kernelLen) * 0.05
+      ////        Convolution(n, kernel, kernelLen)
+      //        val fwd = Real1FFT(n, 512, mode = 0)
+      //        val flt = fwd // * RepeatWindow(fwd.complex.mag > -40.dbAmp)
+      //        Real1IFFT(flt, 512, mode = 0)
+      //      }
+
+      val sum = RunningSum(f.squared)
       ProgressFrames(sum, m)
       val rms = (sum.last / m).sqrt
-//      val f = n
+      //      val f = n
       /*val num =*/ AudioFileOut("file", f, sampleRate = SR)
-//      Length(num).poll("POLLED")
+      //      Length(num).poll("POLLED")
       MkDouble("out", rms)
     }
 
     val gFScReplay = fscape.Graph {
+      import fscape.Ops._
       import fscape.graph._
       import fscape.lucre.graph._
-      import fscape.Ops._
 
-      val in  = AudioFileIn("file")
-      val SR  = in.sampleRate
+      val in = AudioFileIn("file")
+      val SR = in.sampleRate
       val sig = in
       Length(sig).poll("in.length")
-      val pad = DC(0.0).take(0.5 * SR) ++ sig  // avoid stutter in the beginning
+      val pad = DC(0.0).take(0.5 * SR) ++ sig // avoid stutter in the beginning
       WebAudioOut(pad)
     }
 
     lazy val gFSc1 = fscape.Graph {
-      import fscape.graph._
       import fscape.Ops._
+      import fscape.graph._
 
-      val n       = WhiteNoise()
-      val SR      = 48000
+      val n = WhiteNoise()
+      val SR = 48000
       val modFreq = Seq[GE](0.1, 0.123).map(_ / SR)
-      val freq    = SinOsc(modFreq).linExp(-1, 1, 200, 2000)
-      val f       = LPF(n, freq / SR)
-//      val nw    = 8192 * 4
-//      val norm  = NormalizeWindow(f, nw) * 0.25
-//      val normW = norm * GenWindow.Hann(nw)
-//      val lap   = OverlapAdd(normW, nw, nw / 2)
-//      val sig   = lap
-      val sig   = f * 100
+      val freq = SinOsc(modFreq).linExp(-1, 1, 200, 2000)
+      val f = LPF(n, freq / SR)
+      //      val nw    = 8192 * 4
+      //      val norm  = NormalizeWindow(f, nw) * 0.25
+      //      val normW = norm * GenWindow.Hann(nw)
+      //      val lap   = OverlapAdd(normW, nw, nw / 2)
+      //      val sig   = lap
+      val sig = f * 100
       Frames(sig.out(0)).poll(Metro(SR), "metro")
       WebAudioOut(sig)
     }
@@ -160,20 +168,20 @@ object Test {
       import de.sciss.fscape.lucre.graph.Ops._
       import fscape.graph._
 
-      val SR      = 44100
-      val fmOff   = "fm-offset" .attr(80)
-      val fmODepth= "fm-depth"  .attr(24)
-      val hasVerb = "reverb"    .attr(1)
-      val lfFreq  = "lf-freq"   .attr(0.4)
+      val SR = 44100
+      val fmOff = "fm-offset".attr(80)
+      val fmODepth = "fm-depth".attr(24)
+      val hasVerb = "reverb".attr(1)
+      val lfFreq = "lf-freq".attr(0.4)
       // glissando function
-      val f       = (LFSaw(lfFreq / SR) * fmODepth + (LFSaw(Seq[GE](8.0/SR, 7.23/SR)) * 3 + fmOff)).midiCps
-      val fl      = f // OnePole(f, 0.995)
-      val sin     = SinOsc(fl / SR) * 0.04
-      val sig     = If (hasVerb) Then {
+      val f = (LFSaw(lfFreq / SR) * fmODepth + (LFSaw(Seq[GE](8.0 / SR, 7.23 / SR)) * 3 + fmOff)).midiCps
+      val fl = f // OnePole(f, 0.995)
+      val sin = SinOsc(fl / SR) * 0.04
+      val sig = If(hasVerb) Then {
         val echoL = 0.2 * SR
         CombN(sin, echoL, echoL, 4 * SR) // echoing sine wave
       } Else sin
-//      Frames(sig.out(0)).poll(Metro(SR), "metro")
+      //      Frames(sig.out(0)).poll(Metro(SR), "metro")
       WebAudioOut(sig)
     }
 
@@ -196,17 +204,17 @@ object Test {
     }
 
     lazy val gW0 = swing.Graph {
-      import proc.ExImport._
       import expr.graph._
+      import proc.ExImport._
       import swing.graph._
 
-      val rRMS      = Runner("fsc-rms")
-      val rReplay   = Runner("fsc-replay")
-      val rBubbles  = Runner("fsc-bubbles")
-      val rms       = Var(0.0)
-      val state     = Var("")
-      val rmsInfo   = Const("RMS is %1.1f dBFS.").format(rms.ampDb)
-      val rmsRan    = Var(false)
+      val rRMS = Runner("fsc-rms")
+      val rReplay = Runner("fsc-replay")
+      val rBubbles = Runner("fsc-bubbles")
+      val rms = Var(0.0)
+      val state = Var("")
+      val rmsInfo = Const("RMS is %1.1f dBFS.").format(rms.ampDb)
+      val rmsRan = Var(false)
 
       val ggFilterSource = ComboBox(
         Seq("WhiteNoise", "Mic Input")
@@ -217,8 +225,8 @@ object Test {
       ggGenNoise.clicked ---> Act(
         state.set("..."),
         rRMS.runWith(
-          "source"  -> ggFilterSource.index(),
-          "out"     -> rms,
+          "source" -> ggFilterSource.index(),
+          "out" -> rms,
         ),
       )
       ggGenNoise.enabled = {
@@ -236,25 +244,25 @@ object Test {
         ((s sig_== 0) || (s >= 4))
       }
 
-      rRMS    .failed ---> PrintLn("FAILED RENDER: " ++ rRMS    .messages.mkString(", "))
-      rReplay .failed ---> PrintLn("FAILED REPLAY: " ++ rReplay .messages.mkString(", "))
+      rRMS.failed ---> PrintLn("FAILED RENDER: " ++ rRMS.messages.mkString(", "))
+      rReplay.failed ---> PrintLn("FAILED REPLAY: " ++ rReplay.messages.mkString(", "))
 
       val slFMOff = Slider()
-      slFMOff.min     =  40
-      slFMOff.max     = 120
-      slFMOff.value() =  80
+      slFMOff.min = 40
+      slFMOff.max = 120
+      slFMOff.value() = 80
 
       val ifFMDepth = IntField()
-      ifFMDepth.min     =   0
-      ifFMDepth.max     =  96
-      ifFMDepth.value() =  24
-      ifFMDepth.unit    = "semitones"
+      ifFMDepth.min = 0
+      ifFMDepth.max = 96
+      ifFMDepth.value() = 24
+      ifFMDepth.unit = "semitones"
 
       val dfLFFreq = DoubleField()
-      dfLFFreq.min     =    0.01
-      dfLFFreq.max     =  100.0
-      dfLFFreq.value() =    0.4
-      dfLFFreq.unit    = "Hz"
+      dfLFFreq.min = 0.01
+      dfLFFreq.max = 100.0
+      dfLFFreq.value() = 0.4
+      dfLFFreq.unit = "Hz"
 
       val cbReverb = CheckBox("Reverb")
       cbReverb.selected() = true
@@ -267,14 +275,14 @@ object Test {
       val bang = Bang()
 
       val ggStartBubbles = Button("Play")
-      val ggStopBubbles  = Button("Stop")
+      val ggStopBubbles = Button("Stop")
       ggStartBubbles.clicked ---> rBubbles.runWith(
-        "fm-offset" -> slFMOff  .value(),
-        "fm-depth"  -> ifFMDepth.value(),
-        "lf-freq"   -> dfLFFreq .value(),
-        "reverb"    -> cbReverb .selected(),
+        "fm-offset" -> slFMOff.value(),
+        "fm-depth" -> ifFMDepth.value(),
+        "lf-freq" -> dfLFFreq.value(),
+        "reverb" -> cbReverb.selected(),
       )
-      ggStopBubbles .clicked ---> rBubbles.stop
+      ggStopBubbles.clicked ---> rBubbles.stop
       ggStartBubbles.enabled = {
         val s = rBubbles.state
         ((s sig_== 0) || (s >= 4))
@@ -284,7 +292,7 @@ object Test {
       LoadBang() ---> Act(
         PrintLn("Hello from SoundProcesses. Running FScape..."),
         Delay(3.0)(PrintLn("3 seconds have passed. java.vm.name = " ++ Sys.Property("java.vm.name").getOrElse("not defined"))),
-//        fsc.runWith("out" -> res)
+        //        fsc.runWith("out" -> res)
       )
 
       rRMS.done ---> Act(
@@ -294,13 +302,13 @@ object Test {
         bang,
       )
 
-//      val pBubbles = FlowPanel(
-//        Label("Analog Bubbles:"),
-//        ggStartBubbles, ggStopBubbles,
-//        Label(" Freq Mod Offset:"), slFMOff,
-//        Label(" Freq Mod Depth:"), ifFMDepth,
-//        Label(" LFO Freq:"), dfLFFreq,
-//      )
+      //      val pBubbles = FlowPanel(
+      //        Label("Analog Bubbles:"),
+      //        ggStartBubbles, ggStopBubbles,
+      //        Label(" Freq Mod Offset:"), slFMOff,
+      //        Label(" Freq Mod Depth:"), ifFMDepth,
+      //        Label(" LFO Freq:"), dfLFFreq,
+      //      )
 
       val pBubbles = GridPanel(
         Label("Analog Bubbles:"), FlowPanel(ggStartBubbles, ggStopBubbles),
@@ -308,37 +316,37 @@ object Test {
         Label(" Freq Mod Depth:"), ifFMDepth,
         Label(" LFO Freq:"), dfLFFreq,
       )
-      pBubbles.columns        = 2
+      pBubbles.columns = 2
       pBubbles.compactColumns = true
 
       val progBar = ProgressBar()
-      val prog    = (rRMS.progress * 100).toInt
+      val prog = (rRMS.progress * 100).toInt
       progBar.value = prog
 
-//      prog.changed ---> PrintLn("PROGRESS = " ++ prog.toStr)
+      //      prog.changed ---> PrintLn("PROGRESS = " ++ prog.toStr)
 
-//      val pRMS = FlowPanel(Label("Filtered Noise:"), ggAnalyze, progBar, bang, Label(state))
+      //      val pRMS = FlowPanel(Label("Filtered Noise:"), ggAnalyze, progBar, bang, Label(state))
 
       val ggDeleteFile = Button("Delete File")
       ggDeleteFile.clicked ---> (Artifact("file"): Ex[URI]).delete
 
       val pRMS = GridPanel(
         Label("Freq Filter. Source:"),
-          FlowPanel(ggFilterSource, ggGenNoise, progBar, ggReplay, ggDeleteFile),
+        FlowPanel(ggFilterSource, ggGenNoise, progBar, ggReplay, ggDeleteFile),
         Empty(), FlowPanel(bang, Label(state)),
       )
-      pRMS.columns        = 2
+      pRMS.columns = 2
       pRMS.compactColumns = true
 
-//      pRMS.hGap = 10
+      //      pRMS.hGap = 10
 
-//      val checkState = cbReverb.selected()
-//      checkState.changed ---> PrintLn("SELECTED = " ++ checkState.toStr ++ " / " ++ cbReverb.selected().toStr)
+      //      val checkState = cbReverb.selected()
+      //      checkState.changed ---> PrintLn("SELECTED = " ++ checkState.toStr ++ " / " ++ cbReverb.selected().toStr)
 
       BorderPanel(
-        north   = pBubbles,
-        center  = FlowPanel(cbReverb), //, ggFilterSource),
-        south   = pRMS,
+        north = pBubbles,
+        center = FlowPanel(cbReverb), //, ggFilterSource),
+        south = pRMS,
       )
     }
 
@@ -348,10 +356,10 @@ object Test {
       BorderPanel(
         north = Label("north"),
         south = Label("south"),
-//        center= Separator(),
-        center= Label("center"),
-        west  = Label("west"),
-        east  = Label("east"),
+        //        center= Separator(),
+        center = Label("center"),
+        west = Label("west"),
+        east = Label("east"),
       )
     }
 
@@ -391,7 +399,7 @@ object Test {
     implicit val system: S = InMemory()
     implicit val undo: UndoManager[T] = UndoManager()
 
-//    import Workspace.Implicits._
+    //    import Workspace.Implicits._
 
     val view = system.step { implicit tx =>
       implicit val u: Universe[T] = Universe.dummy[T]
@@ -406,26 +414,26 @@ object Test {
       fscBubbles.graph() = gFScBubbles
 
       val rootURI = new URI("idb", "/", null)
-      val locRMS  = LArtifactLocation.newConst[T](rootURI)
-      val artRMS  = LArtifact(locRMS, LArtifact.Child("test.aif"))
-      fscRMS   .attr.put("file", artRMS)
+      val locRMS = LArtifactLocation.newConst[T](rootURI)
+      val artRMS = LArtifact(locRMS, LArtifact.Child("test.aif"))
+      fscRMS.attr.put("file", artRMS)
       fscReplay.attr.put("file", artRMS)
 
-//      val w = proc.Control[T]()
+      //      val w = proc.Control[T]()
       val w = Widget[T]()
       val wAttr = w.attr
       w.graph() = gW
-      wAttr.put("fsc-rms"     , fscRMS    )
-      wAttr.put("fsc-bubbles" , fscBubbles)
-      wAttr.put("fsc-replay"  , fscReplay )
-      wAttr.put("file"        , artRMS    )
+      wAttr.put("fsc-rms", fscRMS)
+      wAttr.put("fsc-bubbles", fscBubbles)
+      wAttr.put("fsc-replay", fscReplay)
+      wAttr.put("file", artRMS)
 
-//      val r = proc.Runner(w)
-////      println(r)
-//      r.run()
-//      r.reactNow { implicit tx => state =>
-//        println(s"STATE = $state")
-//      }
+      //      val r = proc.Runner(w)
+      ////      println(r)
+      //      r.run()
+      //      r.reactNow { implicit tx => state =>
+      //        println(s"STATE = $state")
+      //      }
 
       val wH = tx.newHandle(w)
       implicit val ctx: expr.Context[T] = ExprContext(selfH = Some(wH))
@@ -433,9 +441,9 @@ object Test {
       val _view = gW.expand[T]
       _view.initControl()
       _view
-//
-//
-//      gEx.expand.initControl()
+      //
+      //
+      //      gEx.expand.initControl()
     }
 
     val appContainer: dom.Element = dom.document.body // .querySelector("#appContainer")

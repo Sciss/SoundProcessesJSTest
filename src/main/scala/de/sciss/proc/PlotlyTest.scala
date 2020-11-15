@@ -1,15 +1,15 @@
-package de.sciss.synth.proc
+package de.sciss.proc
 
 import com.raquo.laminar.api.L.{documentEvents, unsafeWindowOwner}
 import plotly.Plotly._
 import plotly._
-import plotly.layout._
+import plotly.layout.Layout
 
 object PlotlyTest {
   def run(): Unit = {
     documentEvents.onDomContentLoaded.foreach { _ =>
       runGUI()
-    } (unsafeWindowOwner)
+    }(unsafeWindowOwner)
   }
 
   def runGUI(): Unit = {
