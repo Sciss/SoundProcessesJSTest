@@ -4,24 +4,154 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <title>SoundProcesses - JS - Test</title>
     <link href="lucre-swing.css" rel="stylesheet">
-    <script type="text/javascript" src="./target/scala-2.13/soundprocesses-js-test-opt.js"></script>
+<!--
+    <script src="lib/plotly-latest.min.js"></script>
+-->
+    <script type="text/javascript" src="lib/main.js"></script>
+    <style>
+      .emscripten { padding-right: 0; margin-left: auto; margin-right: auto; display: block; }
+      div.emscripten { text-align: center; }
+      div.emscripten_border { border: 1px solid black; }
+
+      h1 {
+        font-size: 18px;
+      }
+
+      #boot {
+        float: left;
+        font-size: 12px;
+        margin-left: 4px;
+        margin-bottom: 4px;
+      }
+
+      #status {
+        display: inline-block;
+        vertical-align: top;
+        margin-top: 30px;
+        margin-left: 20px;
+        font-weight: bold;
+        color: rgb(120, 120, 120);
+      }
+
+      #controls {
+        vertical-align: top;
+        margin-top: 16px;
+        margin-right: 16px;
+      }
+
+      #output {
+        width: 100%;
+        height: 120px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        border-left: 0px;
+        border-right: 0px;
+        padding-left: 0px;
+        padding-right: 0px;
+        display: block;
+        font-family: 'Lucida Console', Monaco, monospace;
+        font-size: 11px;
+        outline: none;
+      }
+    </style>
 </head>
 <body>
 <!--<button onclick="Test.run();">Click to Start</button>-->
+<h1>SoundProcesses - JS - Test </h1>
 <p>
     Open web console (<kbd>ctrl</kbd>-<kbd>shift</kbd>-<kbd>K</kbd> in Firefox,
-    <kbd>ctrl</kbd>-<kbd>shift</kbd>-<kbd>I</kbd> in Chromium) to see log.
+    <kbd>ctrl</kbd>-<kbd>shift</kbd>-<kbd>J</kbd> in Chromium) to see log.
 </p>
 <p>
+    This page runs multiple SoundProcesses objects; foremost, a <code>Widget</code> view with
+    various buttons and controls, which in turn controls either a real-time sound synthesis
+    <code>Proc</code> process, or an offline <code>FScape</code> process (which is coupled to
+    real-time using a special <code>WebAudioOut</code> UGen). To run the <code>Proc</code> process,
+    SuperCollider (scsynth) must have been booted.
+</p><p>
     The 'render' / 'replay' example first renders 12 seconds of sound
     (either a noise generator or real-time microphone input) to a virtual file system in the local
     browser storage (IndexedDB), then reads that virtual file and plays it back through <code>WebAudioOut</code>.
-</p>
-<p>
     <a href="https://github.com/Sciss/SoundProcessesJSTest" target="_blank">source code</a>
 </p>
 <!--
-<script type="text/javascript" src="./target/scala-2.13/soundprocesses-js-test-opt.js"></script>
+<div id="plot"></div>
 -->
+<div id='controls'>
+    <input type="button" id="boot" disabled="disabled" value="Boot scsynth" onclick="boot();">
+</div>
+<span class="emscripten" id="status"></span>
+<textarea id="output" rows="8"></textarea>
+
+<script type='text/javascript'>
+  var statusElement   = document.getElementById('status');
+  var bootElement     = document.getElementById('boot');
+
+  var boot = function() {
+    var bootEl    = document.getElementById('boot');
+    var args      = Module['arguments'];
+    args[args.indexOf('-i') + 1] = '0';
+    args[args.indexOf('-o') + 1] = '2';
+    Module.callMain(args);
+    Test.startAural();
+    if (bootEl  ) bootEl  .disabled = true;
+  }
+
+  var Module = {
+    preRun: [],
+    postRun: [],
+    print: (function() {
+      var element = document.getElementById('output');
+      if (element) element.value = ''; // clear browser cache
+      return function(text) {
+        if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+        // These replacements are necessary if you render to raw HTML
+        //text = text.replace(/&/g, "&amp;");
+        //text = text.replace(/</g, "&lt;");
+        //text = text.replace(/>/g, "&gt;");
+        //text = text.replace('\n', '<br>', 'g');
+        console.log(text);
+        if (element) {
+          element.value += text + "\n";
+          element.scrollTop = element.scrollHeight; // focus on bottom
+        }
+      };
+    })(),
+    printErr: function(text) {
+      if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+      console.error(text);
+    },
+    setStatus: function(text) {
+      if (!Module.setStatus.last) Module.setStatus.last = { time: Date.now(), text: '' };
+      if (text === Module.setStatus.last.text) return;
+      var m = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+      var now = Date.now();
+      if (m && now - Module.setStatus.last.time < 30) return; // if this is a progress update, skip it if too soon
+      Module.setStatus.last.time = now;
+      Module.setStatus.last.text = text;
+      if (m) {
+        text = m[1];
+      }
+      statusElement.innerHTML = text;
+    },
+    totalDependencies: 0,
+    monitorRunDependencies: function(left) {
+      this.totalDependencies = Math.max(this.totalDependencies, left);
+      Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
+    },
+    onRuntimeInitialized: function() {
+      bootElement.disabled = false;
+    }
+  };
+  Module.setStatus('Downloading scsynth...');
+  window.onerror = function(event) {
+    // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
+    Module.setStatus('Exception thrown, see JavaScript console');
+    Module.setStatus = function(text) {
+      if (text) Module.printErr('[post-exception status] ' + text);
+    };
+  };
+</script>
+<script async type="text/javascript" src="lib/scsynth.js"></script>
 </body>
 </html>

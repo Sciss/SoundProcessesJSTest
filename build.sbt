@@ -1,12 +1,12 @@
 lazy val deps = new {
   val main = new {
-    val audioFile       = "2.3.1"
-    val fscape          = "3.2.0"
+    val audioFile       = "2.3.2"
+    val fscape          = "3.5.0"
     val laminar         = "0.11.0"
-    val lucre           = "4.2.0"
-    val lucreSwing      = "2.3.0"
+    val lucre           = "4.3.0"
+    val lucreSwing      = "2.5.0"
     val plotly          = "0.8.0"
-    val soundProcesses  = "4.3.0"
+    val soundProcesses  = "4.6.0"
   }
 }
 
@@ -14,7 +14,7 @@ lazy val root = project.in(file("."))
   .enablePlugins(ScalaJSPlugin)
   .settings(
     name := "SoundProcesses JS Test",
-    scalaVersion := "2.13.3", // or any other Scala version >= 2.11.12
+    scalaVersion := "2.13.4",
     // This is an application with a main method
     scalaJSUseMainModuleInitializer := true,
 //    resolvers += Resolver.bintrayRepo("cibotech", "public"),  // needed for EvilPlot
@@ -28,6 +28,7 @@ lazy val root = project.in(file("."))
       "de.sciss"  %%% "soundprocesses-core"   % deps.main.soundProcesses,
       "de.sciss"  %%% "soundprocesses-views"  % deps.main.soundProcesses,
       "org.plotly-scala" %%% "plotly-render" % deps.main.plotly,
-    )
+    ),
+    artifactPath in(Compile, fastOptJS) := baseDirectory.value / "lib" / "main.js",
   )
 

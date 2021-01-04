@@ -1,18 +1,19 @@
 package de.sciss.proc
 
 import java.net.URI
-
 import com.raquo.laminar.api.L.{documentEvents, render, unsafeWindowOwner}
 import de.sciss.asyncfile.AsyncFile
 import de.sciss.audiofile.AudioFile
 import de.sciss.fscape.GE
 import de.sciss.log.Level
 import de.sciss.lucre.edit.UndoManager
-import de.sciss.lucre.synth.InMemory
+import de.sciss.lucre.synth.{InMemory, RT, Server}
 import de.sciss.lucre.{expr, swing, Artifact => LArtifact, ArtifactLocation => LArtifactLocation}
-import de.sciss.{fscape, proc}
+import de.sciss.synth.{Server => SServer, SynthGraph, ugen}
+import de.sciss.{fscape, osc, proc, synth}
 import org.scalajs.dom
 
+import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
 @JSExportTopLevel("Test")
@@ -54,23 +55,66 @@ object Test {
     render(appContainer, c)
   }
 
+  private var universeOpt = Option.empty[Universe[InMemory.Txn]]
+
+  @JSExport
+  def startAural(): Unit = {
+    universeOpt.fold[Unit] {
+      println("SoundProcesses is not initialized yet.")
+    } { u =>
+      u.cursor.step { implicit tx =>
+        val sCfg = synth.Server.Config()
+        val cCfg = synth.Client.Config()
+        sCfg.inputBusChannels   = 0
+        sCfg.outputBusChannels  = 2
+        sCfg.transport          = osc.Browser
+//        u.auralSystem.start(sCfg, cCfg, connect = true)
+        u.auralSystem.connect(sCfg, cCfg)
+      }
+    }
+  }
+
+  @JSExportTopLevel("dumpOSC")
+  def dumpOSC(code: Int = 1): Unit =
+    SServer.default.dumpOSC(osc.Dump(code))
+
+  @JSExportTopLevel("dumpTree")
+  def dumpTree(): Unit = {
+    import de.sciss.synth.Ops._
+    SServer.default.dumpTree(controls = true)
+  }
+
+  @JSExportTopLevel("cmdPeriod")
+  def cmdPeriod(): Unit = {
+    import de.sciss.synth.Ops._
+    SServer.default.freeAll()
+  }
+
+  @JSExportTopLevel("serverCounts")
+  def serverCounts(): Unit =
+    println(SServer.default.counts)
+
+  @JSExportTopLevel("sendOSC")
+  def sendOSC(cmd: String, args: js.Any*): Unit =
+    SServer.default.!(osc.Message(cmd, args: _*))
+
   @JSExport
   def run(): Unit = {
     type S = InMemory
     type T = InMemory.Txn
 
     SoundProcesses.init()
-    FScape.init()
+    FScape        .init()
 
-    AsyncFile.log.level = Level.Info // Debug
-    AudioFile.log.level = Level.Info // Debug
-    fscape.Log.stream.level = Level.Info // Debug
-    fscape.Log.control.level = Level.Info // Debug
+    AsyncFile.log.level       = Level.Info  // Debug
+    AudioFile.log.level       = Level.Info  // Debug
+    fscape.Log.stream.level   = Level.Off   // Level.Info // Debug
+    fscape.Log.control.level  = Level.Off   // Level.Info // Debug
 
-    AsyncFile.log.out = Console.out
-    AudioFile.log.out = Console.out
-    fscape.Log.stream.out = Console.out
-    fscape.Log.control.out = Console.out
+    AsyncFile.log.out         = Console.out
+    AudioFile.log.out         = Console.out
+    fscape.Log.stream.out     = Console.out
+    fscape.Log.control.out    = Console.out
 
     //    val cfg = FScape.Config()
     //    cfg.blockSize = 4096
@@ -168,20 +212,17 @@ object Test {
       import de.sciss.fscape.lucre.graph.Ops._
       import fscape.graph._
 
-      val SR = 44100
-      val fmOff = "fm-offset".attr(80)
-      val fmODepth = "fm-depth".attr(24)
-      val hasVerb = "reverb".attr(1)
-      val lfFreq = "lf-freq".attr(0.4)
-      // glissando function
-      val f = (LFSaw(lfFreq / SR) * fmODepth + (LFSaw(Seq[GE](8.0 / SR, 7.23 / SR)) * 3 + fmOff)).midiCps
-      val fl = f // OnePole(f, 0.995)
-      val sin = SinOsc(fl / SR) * 0.04
-      val sig = If(hasVerb) Then {
+      val SR        = 44100
+      val fmOff     = "fm-offset" .attr(80)
+      val fmODepth  = "fm-depth"  .attr(24)
+      val hasVerb   = "reverb"    .attr(1)
+      val lfFreq    = "lf-freq"   .attr(0.4)
+      val fl        = (LFSaw(lfFreq / SR) * fmODepth + (LFSaw(Seq[GE](8.0 / SR, 7.23 / SR)) * 3 + fmOff)).midiCps
+      val sin       = SinOsc(fl / SR) * 0.04
+      val sig       = If(hasVerb) Then {
         val echoL = 0.2 * SR
         CombN(sin, echoL, echoL, 4 * SR) // echoing sine wave
       } Else sin
-      //      Frames(sig.out(0)).poll(Metro(SR), "metro")
       WebAudioOut(sig)
     }
 
@@ -203,18 +244,38 @@ object Test {
       )
     }
 
+    lazy val gProcBubbles = SynthGraph {
+      import ugen._
+      import synth.proc.graph.Ops._
+
+      NumOutputBuses.ir.poll(0, "NumOutputBuses")
+
+      val fmOff     = "fm-offset" .kr(80)
+      val fmODepth  = "fm-depth"  .kr(24)
+      val hasVerb   = "reverb"    .kr(1)
+      val lfFreq    = "lf-freq"   .kr(0.4)
+
+      val fl  = LFSaw.ar(lfFreq).mulAdd(fmODepth, LFSaw.ar(Seq(8.0, 7.23)).mulAdd(3, fmOff)).midiCps
+      val sin = SinOsc.ar(fl) * 0.04
+      val rev = CombN.ar(sin, 0.2, 0.2, 4)
+      val sig = Select.ar(hasVerb, Seq(sin, rev))
+//      sig.out(0).poll(1, "sig")
+      Out.ar(0, sig)
+    }
+
     lazy val gW0 = swing.Graph {
       import expr.graph._
       import proc.ExImport._
       import swing.graph._
 
-      val rRMS = Runner("fsc-rms")
-      val rReplay = Runner("fsc-replay")
-      val rBubbles = Runner("fsc-bubbles")
-      val rms = Var(0.0)
-      val state = Var("")
-      val rmsInfo = Const("RMS is %1.1f dBFS.").format(rms.ampDb)
-      val rmsRan = Var(false)
+      val rRMS          = Runner("fsc-rms"      )
+      val rReplay       = Runner("fsc-replay"   )
+      val rBubblesFSc   = Runner("fsc-bubbles"  )
+      val rBubblesProc  = Runner("proc-bubbles" )
+      val rms           = Var(0.0)
+      val state         = Var("")
+      val rmsInfo       = Const("RMS is %1.1f dBFS.").format(rms.ampDb)
+      val rmsRan        = Var(false)
 
       val ggFilterSource = ComboBox(
         Seq("WhiteNoise", "Mic Input")
@@ -274,20 +335,26 @@ object Test {
 
       val bang = Bang()
 
-      val ggStartBubbles = Button("Play")
-      val ggStopBubbles = Button("Stop")
-      ggStartBubbles.clicked ---> rBubbles.runWith(
-        "fm-offset" -> slFMOff.value(),
-        "fm-depth" -> ifFMDepth.value(),
-        "lf-freq" -> dfLFFreq.value(),
-        "reverb" -> cbReverb.selected(),
-      )
-      ggStopBubbles.clicked ---> rBubbles.stop
-      ggStartBubbles.enabled = {
-        val s = rBubbles.state
-        ((s sig_== 0) || (s >= 4))
+      def mkStartStop(r: Runner): (Widget, Widget) = {
+        val ggStart  = Button("Play")
+        val ggStop   = Button("Stop")
+        ggStart.clicked ---> r.runWith(
+          "fm-offset" -> slFMOff  .value(),
+          "fm-depth"        -> ifFMDepth.value(),
+          "lf-freq"         -> dfLFFreq .value(),
+          "reverb"          -> cbReverb .selected(),
+        )
+        ggStop.clicked ---> r.stop
+        ggStart.enabled = {
+          val s = r.state
+          ((s sig_== 0) || (s >= 4))
+        }
+        ggStop.enabled = !ggStart.enabled
+        (ggStart, ggStop)
       }
-      ggStopBubbles.enabled = !ggStartBubbles.enabled
+
+      val (ggStartBubblesFSc  , ggStopBubblesFSc  ) = mkStartStop(rBubblesFSc )
+      val (ggStartBubblesProc , ggStopBubblesProc ) = mkStartStop(rBubblesProc)
 
       LoadBang() ---> Act(
         PrintLn("Hello from SoundProcesses. Running FScape..."),
@@ -311,16 +378,17 @@ object Test {
       //      )
 
       val pBubbles = GridPanel(
-        Label("Analog Bubbles:"), FlowPanel(ggStartBubbles, ggStopBubbles),
-        Label(" Freq Mod Offset:"), slFMOff,
-        Label(" Freq Mod Depth:"), ifFMDepth,
-        Label(" LFO Freq:"), dfLFFreq,
+        Label("Analog Bubbles (Proc):"  ), FlowPanel(ggStartBubblesProc, ggStopBubblesProc ),
+        Label("Analog Bubbles (FScape):"), FlowPanel(ggStartBubblesFSc , ggStopBubblesFSc  ),
+        Label(" Freq Mod Offset:"       ), slFMOff,
+        Label(" Freq Mod Depth:"        ), ifFMDepth,
+        Label(" LFO Freq:"              ), dfLFFreq,
       )
       pBubbles.columns = 2
       pBubbles.compactColumns = true
 
-      val progBar = ProgressBar()
-      val prog = (rRMS.progress * 100).toInt
+      val progBar  = ProgressBar()
+      val prog    = (rRMS.progress * 100).toInt
       progBar.value = prog
 
       //      prog.changed ---> PrintLn("PROGRESS = " ++ prog.toStr)
@@ -344,9 +412,9 @@ object Test {
       //      checkState.changed ---> PrintLn("SELECTED = " ++ checkState.toStr ++ " / " ++ cbReverb.selected().toStr)
 
       BorderPanel(
-        north = pBubbles,
-        center = FlowPanel(cbReverb), //, ggFilterSource),
-        south = pRMS,
+        north   = pBubbles,
+        center  = FlowPanel(cbReverb), //, ggFilterSource),
+        south   = pRMS,
       )
     }
 
@@ -401,7 +469,7 @@ object Test {
 
     //    import Workspace.Implicits._
 
-    val view = system.step { implicit tx =>
+    val (universe, view) = system.step { implicit tx =>
       implicit val u: Universe[T] = Universe.dummy[T]
 
       val fscRMS = FScape[T]()
@@ -413,20 +481,24 @@ object Test {
       val fscBubbles = FScape[T]()
       fscBubbles.graph() = gFScBubbles
 
+      val procBubbles = Proc[T]()
+      procBubbles.graph() = gProcBubbles
+
       val rootURI = new URI("idb", "/", null)
-      val locRMS = LArtifactLocation.newConst[T](rootURI)
-      val artRMS = LArtifact(locRMS, LArtifact.Child("test.aif"))
-      fscRMS.attr.put("file", artRMS)
-      fscReplay.attr.put("file", artRMS)
+      val locRMS  = LArtifactLocation.newConst[T](rootURI)
+      val artRMS  = LArtifact(locRMS, LArtifact.Child("test.aif"))
+      fscRMS    .attr.put("file", artRMS)
+      fscReplay .attr.put("file", artRMS)
 
       //      val w = proc.Control[T]()
       val w = Widget[T]()
       val wAttr = w.attr
       w.graph() = gW
-      wAttr.put("fsc-rms", fscRMS)
-      wAttr.put("fsc-bubbles", fscBubbles)
-      wAttr.put("fsc-replay", fscReplay)
-      wAttr.put("file", artRMS)
+      wAttr.put("fsc-rms"     , fscRMS      )
+      wAttr.put("fsc-bubbles" , fscBubbles  )
+      wAttr.put("proc-bubbles", procBubbles )
+      wAttr.put("fsc-replay"  , fscReplay   )
+      wAttr.put("file"        , artRMS      )
 
       //      val r = proc.Runner(w)
       ////      println(r)
@@ -440,11 +512,22 @@ object Test {
 
       val _view = gW.expand[T]
       _view.initControl()
-      _view
+
+      u.auralSystem.addClientNow(new AuralSystem.Client {
+        override def auralStarted(s: Server)(implicit tx: RT): Unit =
+          println("auralStarted")
+
+        override def auralStopped()(implicit tx: RT): Unit =
+          println("auralStopped")
+      })
+
+      (u, _view)
       //
       //
       //      gEx.expand.initControl()
     }
+
+    universeOpt = Some(universe)
 
     val appContainer: dom.Element = dom.document.body // .querySelector("#appContainer")
     /*val root: RootNode =*/ render(appContainer, view.component)
