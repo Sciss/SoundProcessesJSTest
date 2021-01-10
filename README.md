@@ -56,15 +56,14 @@ The components or pieces that need to come together:
        
 - [ ] removal of reflection based serialization 
 
-   - [ ] FScape
+   - [X] SynthGraph
    - [ ] Ex/Control/Widget
+   - [ ] FScape
    - [ ] Patterns
-   - [ ] SynthGraph
-       
+  
 - [ ] export of workspaces 
 
-   - [ ] new database back-end that works in SJS
-   - [ ] or JSON based export/import
+   - [ ] new database back-end that works in SJS, or JSON/binary based export/import
        
 - [ ] performance evaluation. Usage of web worker?
 
@@ -77,6 +76,7 @@ From Sébastien:
 
 'Virtual File System' options:
 
+- solved now in [AsyncFile](https://github.com/Sciss/AsyncFile)
 - IndexedDB at [MDN](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API), at [W3C](https://www.w3.org/TR/IndexedDB/)
 - FileSystem API at [MDN](https://developer.mozilla.org/en-US/docs/Web/API/FileSystem), at [CanIUse](https://caniuse.com/?search=FileSystem%20API)
 - [BrowserFS](https://jvilk.com/browserfs/2.0.0-beta/index.html)
