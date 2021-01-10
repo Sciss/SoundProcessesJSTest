@@ -55,7 +55,8 @@ object Test {
     render(appContainer, c)
   }
 
-  private var universeOpt = Option.empty[Universe[InMemory.Txn]]
+//  private var universeOpt = Option.empty[Universe[InMemory.Txn]]
+  private var universeOpt = Option.empty[Universe[Durable.Txn]]
 
   @JSExport
   def startAural(): Unit = {
@@ -100,11 +101,14 @@ object Test {
 
   @JSExport
   def run(): Unit = {
-    type S = InMemory
-    type T = InMemory.Txn
+//    type S = InMemory
+//    type T = InMemory.Txn
+    type S = Durable
+    type T = Durable.Txn
 
     SoundProcesses.init()
-    FScape        .init()
+    // XXX TODO
+    // FScape        .init()
 
     AsyncFile.log.level       = Level.Info  // Debug
     AudioFile.log.level       = Level.Info  // Debug
@@ -464,7 +468,7 @@ object Test {
 
     val gW = gW0
 
-    implicit val system: S = InMemory()
+    implicit val system: S = Durable(???) // InMemory()
     implicit val undo: UndoManager[T] = UndoManager()
 
     //    import Workspace.Implicits._
@@ -472,14 +476,17 @@ object Test {
     val (universe, view) = system.step { implicit tx =>
       implicit val u: Universe[T] = Universe.dummy[T]
 
-      val fscRMS = FScape[T]()
-      fscRMS.graph() = gFScRMS
+      // XXX TODO serialization sjs
+      // val fscRMS = FScape[T]()
+      // fscRMS.graph() = gFScRMS
 
-      val fscReplay = FScape[T]()
-      fscReplay.graph() = gFScReplay
+      // XXX TODO serialization sjs
+      // val fscReplay = FScape[T]()
+      // fscReplay.graph() = gFScReplay
 
-      val fscBubbles = FScape[T]()
-      fscBubbles.graph() = gFScBubbles
+      // XXX TODO serialization sjs
+      // val fscBubbles = FScape[T]()
+      // fscBubbles.graph() = gFScBubbles
 
       val procBubbles = Proc[T]()
       procBubbles.graph() = gProcBubbles
@@ -487,25 +494,20 @@ object Test {
       val rootURI = new URI("idb", "/", null)
       val locRMS  = LArtifactLocation.newConst[T](rootURI)
       val artRMS  = LArtifact(locRMS, LArtifact.Child("test.aif"))
-      fscRMS    .attr.put("file", artRMS)
-      fscReplay .attr.put("file", artRMS)
+      // XXX TODO
+      // fscRMS    .attr.put("file", artRMS)
+      // fscReplay .attr.put("file", artRMS)
 
       //      val w = proc.Control[T]()
       val w = Widget[T]()
       val wAttr = w.attr
       w.graph() = gW
-      wAttr.put("fsc-rms"     , fscRMS      )
-      wAttr.put("fsc-bubbles" , fscBubbles  )
+      // XXX TODO
+      // wAttr.put("fsc-rms"     , fscRMS      )
+      // wAttr.put("fsc-bubbles" , fscBubbles  )
+      // wAttr.put("fsc-replay"  , fscReplay   )
       wAttr.put("proc-bubbles", procBubbles )
-      wAttr.put("fsc-replay"  , fscReplay   )
       wAttr.put("file"        , artRMS      )
-
-      //      val r = proc.Runner(w)
-      ////      println(r)
-      //      r.run()
-      //      r.reactNow { implicit tx => state =>
-      //        println(s"STATE = $state")
-      //      }
 
       val wH = tx.newHandle(w)
       implicit val ctx: expr.Context[T] = ExprContext(selfH = Some(wH))

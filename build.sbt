@@ -6,7 +6,7 @@ lazy val deps = new {
     val lucre           = "4.3.0"
     val lucreSwing      = "2.5.0"
     val plotly          = "0.8.0"
-    val soundProcesses  = "4.6.0"
+    val soundProcesses  = "4.7.0-SNAPSHOT"
   }
 }
 
