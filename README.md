@@ -58,7 +58,7 @@ The components or pieces that need to come together:
 
    - [X] SynthGraph
    - [X] Ex/Control
-   - [ ] Widget
+   - [X] Widget
    - [ ] FScape
    - [ ] Patterns
   
