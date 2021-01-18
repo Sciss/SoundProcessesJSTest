@@ -57,13 +57,14 @@ The components or pieces that need to come together:
 - [ ] removal of reflection based serialization 
 
    - [X] SynthGraph
-   - [ ] Ex/Control/Widget
+   - [X] Ex/Control
+   - [ ] Widget
    - [ ] FScape
    - [ ] Patterns
   
 - [ ] export of workspaces 
 
-   - [ ] new database back-end that works in SJS, or JSON/binary based export/import
+   - [X] new database back-end that works in SJS, or JSON/__binary__ based export/import
        
 - [ ] performance evaluation. Usage of web worker?
 

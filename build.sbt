@@ -3,9 +3,10 @@ lazy val deps = new {
     val audioFile       = "2.3.2"
     val fscape          = "3.5.0"
     val laminar         = "0.11.0"
-    val lucre           = "4.3.1-SNAPSHOT"
-    val lucreSwing      = "2.5.0"
+    val lucre           = "4.4.0-SNAPSHOT"
+    val lucreSwing      = "2.6.0-SNAPSHOT"
     val plotly          = "0.8.0"
+    val scalaJavaTime   = "2.1.0"
     val soundProcesses  = "4.7.0-SNAPSHOT"
   }
 }
@@ -28,6 +29,7 @@ lazy val root = project.in(file("."))
       "de.sciss"  %%% "soundprocesses-core"   % deps.main.soundProcesses,
       "de.sciss"  %%% "soundprocesses-views"  % deps.main.soundProcesses,
       "org.plotly-scala" %%% "plotly-render" % deps.main.plotly,
+      "io.github.cquiroz" %%% "scala-java-time" % deps.main.scalaJavaTime,
     ),
     artifactPath in(Compile, fastOptJS) := baseDirectory.value / "lib" / "main.js",
   )

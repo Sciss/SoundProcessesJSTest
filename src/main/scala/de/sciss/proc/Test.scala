@@ -1,18 +1,19 @@
 package de.sciss.proc
 
-import java.net.URI
 import com.raquo.laminar.api.L.{documentEvents, render, unsafeWindowOwner}
 import de.sciss.asyncfile.AsyncFile
 import de.sciss.audiofile.AudioFile
 import de.sciss.fscape.GE
 import de.sciss.log.Level
 import de.sciss.lucre.edit.UndoManager
-import de.sciss.lucre.synth.{InMemory, RT, Server}
+import de.sciss.lucre.store.InMemoryDB
+import de.sciss.lucre.synth.{RT, Server}
 import de.sciss.lucre.{expr, swing, Artifact => LArtifact, ArtifactLocation => LArtifactLocation}
-import de.sciss.synth.{Server => SServer, SynthGraph, ugen}
+import de.sciss.synth.{SynthGraph, ugen, Server => SServer}
 import de.sciss.{fscape, osc, proc, synth}
 import org.scalajs.dom
 
+import java.net.URI
 import scala.scalajs.js
 import scala.scalajs.js.annotation.{JSExport, JSExportTopLevel}
 
@@ -249,8 +250,8 @@ object Test {
     }
 
     lazy val gProcBubbles = SynthGraph {
-      import ugen._
       import synth.proc.graph.Ops._
+      import ugen._
 
       NumOutputBuses.ir.poll(0, "NumOutputBuses")
 
@@ -468,7 +469,7 @@ object Test {
 
     val gW = gW0
 
-    implicit val system: S = Durable(???) // InMemory()
+    implicit val system: S = Durable(InMemoryDB()) // InMemory()
     implicit val undo: UndoManager[T] = UndoManager()
 
     //    import Workspace.Implicits._
