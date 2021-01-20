@@ -7,6 +7,7 @@ import de.sciss.fscape.GE
 import de.sciss.log.Level
 import de.sciss.lucre.edit.UndoManager
 import de.sciss.lucre.store.InMemoryDB
+import de.sciss.lucre.swing.LucreSwing
 import de.sciss.lucre.synth.{RT, Server}
 import de.sciss.lucre.{expr, swing, Artifact => LArtifact, ArtifactLocation => LArtifactLocation}
 import de.sciss.synth.{SynthGraph, ugen, Server => SServer}
@@ -25,11 +26,16 @@ object Test {
     //    PlotlyTest.run()
   }
 
+  //    type S = InMemory
+  //    type T = InMemory.Txn
+  type S = Durable
+  type T = Durable.Txn
+
   def runGUI(): Unit = {
     println("Test initialized.")
     documentEvents.onDomContentLoaded.foreach { _ =>
       run()
-    }(unsafeWindowOwner)
+    } (unsafeWindowOwner)
   }
 
   def run2(): Unit = {
@@ -56,8 +62,7 @@ object Test {
     render(appContainer, c)
   }
 
-//  private var universeOpt = Option.empty[Universe[InMemory.Txn]]
-  private var universeOpt = Option.empty[Universe[Durable.Txn]]
+  private var universeOpt = Option.empty[Universe[T]]
 
   @JSExport
   def startAural(): Unit = {
@@ -102,14 +107,11 @@ object Test {
 
   @JSExport
   def run(): Unit = {
-//    type S = InMemory
-//    type T = InMemory.Txn
-    type S = Durable
-    type T = Durable.Txn
 
+    FScape        .init()
+    LucreSwing    .init()
     SoundProcesses.init()
-    // XXX TODO
-    // FScape        .init()
+    Widget        .init()
 
     AsyncFile.log.level       = Level.Info  // Debug
     AudioFile.log.level       = Level.Info  // Debug
@@ -154,7 +156,7 @@ object Test {
       val SR = 44100 // XXX TODO: for real-time input, should use correct value
       val m = 12 /*100*/ * SR
       val srcIdx = "source".attr(0)
-      val source = If(srcIdx sig_== 0) Then WhiteNoise() Else WebAudioIn()
+      val source = If(srcIdx sig_== 0) Then WhiteNoise() Else PhysicalIn()
       val n = source.take(m)
       val lf = Line(0.2, 2.0, m)
       val fo = Line(600, 1200, m)
@@ -189,7 +191,7 @@ object Test {
       val sig = in
       Length(sig).poll("in.length")
       val pad = DC(0.0).take(0.5 * SR) ++ sig // avoid stutter in the beginning
-      WebAudioOut(pad)
+      PhysicalOut(pad)
     }
 
     lazy val gFSc1 = fscape.Graph {
@@ -208,7 +210,7 @@ object Test {
       //      val sig   = lap
       val sig = f * 100
       Frames(sig.out(0)).poll(Metro(SR), "metro")
-      WebAudioOut(sig)
+      PhysicalOut(sig)
     }
 
     def any2stringadd: Any = ()
@@ -228,7 +230,7 @@ object Test {
         val echoL = 0.2 * SR
         CombN(sin, echoL, echoL, 4 * SR) // echoing sine wave
       } Else sin
-      WebAudioOut(sig)
+      PhysicalOut(sig)
     }
 
     lazy val gEx = expr.Graph {
@@ -477,17 +479,14 @@ object Test {
     val (universe, view) = system.step { implicit tx =>
       implicit val u: Universe[T] = Universe.dummy[T]
 
-      // XXX TODO serialization sjs
-      // val fscRMS = FScape[T]()
-      // fscRMS.graph() = gFScRMS
+      val fscRMS = FScape[T]()
+      fscRMS.graph() = gFScRMS
 
-      // XXX TODO serialization sjs
-      // val fscReplay = FScape[T]()
-      // fscReplay.graph() = gFScReplay
+      val fscReplay = FScape[T]()
+      fscReplay.graph() = gFScReplay
 
-      // XXX TODO serialization sjs
-      // val fscBubbles = FScape[T]()
-      // fscBubbles.graph() = gFScBubbles
+      val fscBubbles = FScape[T]()
+      fscBubbles.graph() = gFScBubbles
 
       val procBubbles = Proc[T]()
       procBubbles.graph() = gProcBubbles
@@ -495,18 +494,16 @@ object Test {
       val rootURI = new URI("idb", "/", null)
       val locRMS  = LArtifactLocation.newConst[T](rootURI)
       val artRMS  = LArtifact(locRMS, LArtifact.Child("test.aif"))
-      // XXX TODO
-      // fscRMS    .attr.put("file", artRMS)
-      // fscReplay .attr.put("file", artRMS)
+      fscRMS    .attr.put("file", artRMS)
+      fscReplay .attr.put("file", artRMS)
 
       //      val w = proc.Control[T]()
       val w = Widget[T]()
       val wAttr = w.attr
       w.graph() = gW
-      // XXX TODO
-      // wAttr.put("fsc-rms"     , fscRMS      )
-      // wAttr.put("fsc-bubbles" , fscBubbles  )
-      // wAttr.put("fsc-replay"  , fscReplay   )
+      wAttr.put("fsc-rms"     , fscRMS      )
+      wAttr.put("fsc-bubbles" , fscBubbles  )
+      wAttr.put("fsc-replay"  , fscReplay   )
       wAttr.put("proc-bubbles", procBubbles )
       wAttr.put("file"        , artRMS      )
 

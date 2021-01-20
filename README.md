@@ -25,7 +25,7 @@ focusing only on ScalaCollider.
 
 The project builds with [sbt](https://www.scala-sbt.org/).
 
-Compile with `sbt fastOptJS` or `sbt fullOptJS`, then open [index.html](index.html).
+Compile with `sbt -J-Xmx2G fastOptJS` or `sbt -J-Xmx2G fullOptJS`, then open [index.html](index.html).
 To use scsynth.wasm, you must run a web server, such as
 
     python -m SimpleHTTPServer
@@ -59,7 +59,7 @@ The components or pieces that need to come together:
    - [X] SynthGraph
    - [X] Ex/Control
    - [X] Widget
-   - [ ] FScape
+   - [X] FScape
    - [ ] Patterns
   
 - [ ] export of workspaces 
@@ -71,9 +71,6 @@ The components or pieces that need to come together:
 ## notes
 
 From Sébastien:
-
-- `Float32Array` might perform better than `Array[Float]`
-- for Firefox performance, forcing ECMAScript 5.1 helps (instead of default ECMAScript 2015)
 
 'Virtual File System' options:
 

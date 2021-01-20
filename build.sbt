@@ -1,7 +1,7 @@
 lazy val deps = new {
   val main = new {
     val audioFile       = "2.3.2"
-    val fscape          = "3.5.0"
+    val fscape          = "3.6.0-SNAPSHOT"
     val laminar         = "0.11.0"
     val lucre           = "4.4.0-SNAPSHOT"
     val lucreSwing      = "2.6.0-SNAPSHOT"
