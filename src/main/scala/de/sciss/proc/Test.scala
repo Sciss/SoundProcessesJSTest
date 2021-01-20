@@ -62,6 +62,7 @@ object Test {
 
   @JSExport
   def startAural(): Unit = {
+    println("startAural() called")
     universeOpt.fold[Unit] {
       println("SoundProcesses is not initialized yet.")
     } { u =>

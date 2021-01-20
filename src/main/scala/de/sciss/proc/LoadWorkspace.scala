@@ -44,9 +44,9 @@ object LoadWorkspace {
             implicit val undo: UndoManager[T] = UndoManager()
             val resOpt = cursor.step { implicit tx =>
               val fRoot = ws.root
-              fRoot.iterator.foreach { child =>
-                println(s"CHILD: ${child.name}")
-              }
+//              fRoot.iterator.foreach { child =>
+//                println(s"CHILD: ${child.name}")
+//              }
               fRoot.$[Widget]("start").map { w =>
                 implicit val u: Universe[T] = Universe.dummy[T]
                 val wH = tx.newHandle(w)
