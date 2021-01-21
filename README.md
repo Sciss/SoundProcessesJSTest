@@ -25,7 +25,11 @@ focusing only on ScalaCollider.
 
 The project builds with [sbt](https://www.scala-sbt.org/).
 
-Compile with `sbt -J-Xmx2G fastOptJS` or `sbt -J-Xmx2G fullOptJS`, then open [index.html](index.html).
+Compile with `sbt -J-Xmx2G fastOptJS` or `sbt -J-Xmx2G fullOptJS`. The former compiles faster, whereas the
+latter takes longer and is meant to minimise the JavaScript file size. Currently `fastOptJS` creates a 30 MB
+file, whereas `fullOptJS` comes down to 5 MB, which makes a big difference when downloading from a website.
+
+After compilation, the [index.html](index.html) can be used to run the application.
 To use scsynth.wasm, you must run a web server, such as
 
     python -m SimpleHTTPServer
@@ -35,6 +39,22 @@ To use scsynth.wasm, you must run a web server, such as
 There may or may not be a test site up
 at [www.sciss.de/temp/soundprocesses.js](https://www.sciss.de/temp/soundprocesses.js/). For scsynth.wasm,
 you need to use either Chrome/Chromium, or Firefox 79 or newer (Firefox 85 has been confirmed to work).
+
+## workspace
+
+The current version, instead of building a SoundProcesses structure from scratch (source file
+`DirectWorkspace`), loads an existing workspace (see `LoadWorkspace`). This is a workspace exported
+from Mellite as a 'binary blob', the file `workspace.mllt.bin`. The original desktop
+workspace for Mellite is `workspace.mllt`. If you want to test other workspaces, you need to use
+Mellite 3.4.0-SNAPSHOT or newer, and in a workspace's root folder choose the menu item
+_File_ > _Export Binary Workspace_, then overwrite `workspace.mllt.bin`. The root folder must
+contain a `Widget` element named `start`, which will be rendered in the browser.
+
+Currently, `Control`, `Widget`, `Proc`, and `FScape` are supported in the browser, 
+but `Pattern` and `Stream` are not yet supported.
+`FScape` objects can make use of  a virtual file system in the local
+browser storage (IndexedDB), and also capture and play sound in real-time through 
+the graph elements <code>PhysicalIn</code> and <code>PhysicalOut</code>.
 
 ## status
 

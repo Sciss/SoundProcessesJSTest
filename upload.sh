@@ -1,3 +1,2 @@
 #!/bin/bash
-rsync -rltDuv target/scala-2.13/soundprocesses-js-test-opt.js* www.sciss.de@ssh.strato.de:temp/soundprocesses.js/target/scala-2.13/
-rsync -rltDuv index*.html www.sciss.de@ssh.strato.de:temp/soundprocesses.js/
+rsync -rltDuv lib *.css *.html *.mllt.bin www.sciss.de@ssh.strato.de:temp/soundprocesses.js/

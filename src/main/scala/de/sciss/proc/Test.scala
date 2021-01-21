@@ -4,7 +4,6 @@ import com.raquo.laminar.api.L.{documentEvents, render, unsafeWindowOwner}
 import de.sciss.asyncfile.AsyncFile
 import de.sciss.audiofile.AudioFile
 import de.sciss.log.Level
-import de.sciss.lucre.swing.LucreSwing
 import de.sciss.lucre.synth.Executor
 import de.sciss.synth.{Server => SServer}
 import de.sciss.{fscape, osc, synth}
@@ -106,7 +105,6 @@ object Test {
   def run(): Unit = {
 
     FScape        .init()
-    LucreSwing    .init()
     SoundProcesses.init()
     Widget        .init()
 

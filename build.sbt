@@ -3,8 +3,8 @@ lazy val deps = new {
     val audioFile       = "2.3.2"
     val fscape          = "3.6.0-SNAPSHOT"
     val laminar         = "0.11.0"
-    val lucre           = "4.4.0-SNAPSHOT"
-    val lucreSwing      = "2.6.0-SNAPSHOT"
+    val lucre           = "4.4.0"
+    val lucreSwing      = "2.6.0"
     val plotly          = "0.8.0"
     val scalaJavaTime   = "2.1.0"
     val soundProcesses  = "4.7.0-SNAPSHOT"
@@ -32,5 +32,6 @@ lazy val root = project.in(file("."))
       "io.github.cquiroz" %%% "scala-java-time" % deps.main.scalaJavaTime,
     ),
     artifactPath in(Compile, fastOptJS) := baseDirectory.value / "lib" / "main.js",
+    artifactPath in(Compile, fullOptJS) := baseDirectory.value / "lib" / "main.js",
   )
 
