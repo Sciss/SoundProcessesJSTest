@@ -122,3 +122,17 @@ The following FScape UGens are not yet available:
 - [scalajs-indexeddb](https://github.com/math85360/scalajs-indexeddb/blob/master/src/main/scala/com/iz2use/indexeddb/IndexedDB.scala)
 
 For limitations of Scala.js, see also [this Gist](https://gist.github.com/Sciss/22996370ea2a277a409775705d740993)
+
+Apache web servers: You may need to edit `.htaccess` and add `AddType application/wasm wasm` if you see
+the error/warning in the console:
+
+> Incorrect response MIME type. Expected 'application/wasm' apache
+
+I also use this to fix COOP/COEP things for Firefox (not sure it's correct, but seems to be working):
+
+```
+Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+
+Header set Cross-Origin-Opener-Policy: same-origin
+Header set Cross-Origin-Embedder-Policy: require-corp
+```
