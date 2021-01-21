@@ -7,6 +7,11 @@
 A test project to develop the mechanisms necessary to run a
 [SoundProcesses](https://git.iem.at/sciss/SoundProcesses) workspace in the browser, 
 by building everything necessary for [Scala.js](https://www.scala-js.org/).
+__SoundProcesses is a computer music framework__ with multiple integrated abstractions, 
+including real-time sound synthesis through  ScalaCollider, non-realtime signal processing through FScape, 
+and programme logic through domain specific language Ex/Control/Widget. SoundProcesses is usually operated 
+through the [Mellite](https://sciss.de/mellite) environment. When this project is mature, it means you can export
+workspaces directly from Mellite to a browser-compatible format.
 
 This project is (C)opyright 2020–2021 by Hanns Holger Rutz. All rights reserved.
 Like SoundProcesses, on which it depends, it is released under the 
@@ -15,21 +20,29 @@ and comes with absolutely no warranties. To contact the author, send an e-mail t
 
 ## scsynth.wasm
 
-I'm now working on real-time sound synthesis support (`Proc` abstraction), and the WebAssembly build
+I am working on real-time sound synthesis support (`Proc` abstraction), and the WebAssembly (WASM) build
 of the SuperCollider server is included as binary in the `lib` directory. SuperCollider is covered by GNU GPL v2+,
-see [here](https://github.com/Sciss/supercollider/tree/wasm) for source code.
+see [here](https://github.com/Sciss/supercollider/tree/wasm) for source code (eventually to be merged into
+upstream).
 See the [ScalaCollider JS Test](https://github.com/Sciss/ScalaColliderJSTest) for a smaller test project
 focusing only on ScalaCollider.
 
 ## running
 
-The project builds with [sbt](https://www.scala-sbt.org/).
+The project builds with [sbt](https://www.scala-sbt.org/), a tool which you may need to install.
 
 Compile with `sbt -J-Xmx2G fastOptJS` or `sbt -J-Xmx2G fullOptJS`. The former compiles faster, whereas the
 latter takes longer and is meant to minimise the JavaScript file size. Currently `fastOptJS` creates a 30 MB
 file, whereas `fullOptJS` comes down to 5 MB, which makes a big difference when downloading from a website.
 
-After compilation, the [index.html](index.html) can be used to run the application.
+__Note:__ during development, the project will depend on locally published libraries, indicated by versions
+that end with `-SNAPSHOT` (try `grep SNAP build.sbt`). The policy is that the `main` branch of the
+repository should always work without local libraries, and the `work` branch is likely to require that you
+build and publish some libraries first (such as SoundProcesses itself). If you need help with that, do not
+hesitate to get in touch. In general, you clone the git repository of the library, and use `sbt publishLocal` 
+(there are scripts `script/publishLocal.sh` in the SoundProcesses and FScape repositories that accomplish this).
+
+After successful compilation, the [index.html](index.html) can be used to run the application.
 To use scsynth.wasm, you must run a web server, such as
 
     python -m SimpleHTTPServer
@@ -38,15 +51,16 @@ To use scsynth.wasm, you must run a web server, such as
 
 There may or may not be a test site up
 at [www.sciss.de/temp/soundprocesses.js](https://www.sciss.de/temp/soundprocesses.js/). For scsynth.wasm,
-you need to use either Chrome/Chromium, or Firefox 79 or newer (Firefox 85 has been confirmed to work).
+you need to use either Chrome/Chromium, or Firefox 79 or newer (Firefox 85 has been confirmed to work),
+as [SharedArrayBuffer](https://caniuse.com/sharedarraybuffer) is needed.
 
 ## workspace
 
-The current version, instead of building a SoundProcesses structure from scratch (source file
-`DirectWorkspace`), loads an existing workspace (see `LoadWorkspace`). This is a workspace exported
-from Mellite as a 'binary blob', the file `workspace.mllt.bin`. The original desktop
+The current version, no longer building a SoundProcesses structure from scratch (that would have been 
+source file `DirectWorkspace`), now loads an existing workspace (see `LoadWorkspace`). This is a workspace 
+exported from Mellite as a 'binary blob', the file `workspace.mllt.bin`. The original desktop
 workspace for Mellite is `workspace.mllt`. If you want to test other workspaces, you need to use
-Mellite 3.4.0-SNAPSHOT or newer, and in a workspace's root folder choose the menu item
+Mellite 3.4.0-SNAPSHOT or newer, and in a workspace’s root folder choose the menu item
 _File_ > _Export Binary Workspace_, then overwrite `workspace.mllt.bin`. The root folder must
 contain a `Widget` element named `start`, which will be rendered in the browser.
 
@@ -54,7 +68,7 @@ Currently, `Control`, `Widget`, `Proc`, and `FScape` are supported in the browse
 but `Pattern` and `Stream` are not yet supported.
 `FScape` objects can make use of  a virtual file system in the local
 browser storage (IndexedDB), and also capture and play sound in real-time through 
-the graph elements <code>PhysicalIn</code> and <code>PhysicalOut</code>.
+the graph elements `PhysicalIn` and `PhysicalOut`.
 
 ## status
 
@@ -88,9 +102,16 @@ The components or pieces that need to come together:
        
 - [ ] performance evaluation. Usage of web worker?
 
-## notes
+The following FScape UGens are not yet available:
 
-From Sébastien:
+- [ ] `BufferDisk` __high prio__
+- [ ] `Fourier`
+- [ ] `PitchAC` (needs `BufferDisk`)
+- [ ] `ResampleWindow`
+- [ ] `Slices`
+- [ ] `WPE_Dereverberate` (needs `BufferDisk`)
+
+## notes
 
 'Virtual File System' options:
 
