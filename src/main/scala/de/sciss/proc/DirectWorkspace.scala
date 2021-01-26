@@ -4,8 +4,8 @@ import de.sciss.fscape.GE
 import de.sciss.lucre.edit.UndoManager
 import de.sciss.lucre.store.InMemoryDB
 import de.sciss.lucre.swing.View
-import de.sciss.lucre.synth.{RT, Server}
 import de.sciss.lucre.{expr, swing, Artifact => LArtifact, ArtifactLocation => LArtifactLocation}
+import de.sciss.proc.AuralSystem.{Running, Stopped}
 import de.sciss.proc.Test.{S, T}
 import de.sciss.synth.{SynthGraph, ugen}
 import de.sciss.{fscape, proc, synth}
@@ -407,13 +407,11 @@ object DirectWorkspace {
       val _view = gW.expand[T]
       _view.initControl()
 
-      u.auralSystem.addClientNow(new AuralSystem.Client {
-        override def auralStarted(s: Server)(implicit tx: RT): Unit =
-          println("auralStarted")
-
-        override def auralStopped()(implicit tx: RT): Unit =
-          println("auralStopped")
-      })
+      u.auralSystem.reactNow { implicit tx => {
+        case Running(_) => println("auralStarted")
+        case Stopped    => println("auralStopped")
+        case _          =>
+      }}
 
       (u, _view)
       //
