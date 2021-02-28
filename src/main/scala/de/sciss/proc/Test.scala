@@ -15,11 +15,8 @@ import scala.util.{Failure, Success}
 
 @JSExportTopLevel("Test")
 object Test {
-  def main(args: Array[String]): Unit = {
-    //    IndexedDBTests.run()
+  def main(args: Array[String]): Unit =
     runGUI()
-    //    PlotlyTest.run()
-  }
 
   //    type S = InMemory
   //    type T = InMemory.Txn
@@ -117,6 +114,8 @@ object Test {
     AudioFile.log.out         = Console.out
     fscape.Log.stream.out     = Console.out
     fscape.Log.control.out    = Console.out
+
+    SoundProcesses.logAural.level = Level.Info  // Debug
 
     val appContainer: dom.Element = dom.document.body // .querySelector("#appContainer")
 

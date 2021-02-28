@@ -77,9 +77,11 @@
 <!--
 <div id="plot"></div>
 -->
+<!--
 <div id='controls'>
     <input type="button" id="boot" disabled="disabled" value="Boot scsynth" onclick="boot();">
 </div>
+-->
 <span class="emscripten" id="status"></span>
 <textarea id="output" rows="8"></textarea>
 
@@ -140,7 +142,7 @@
       Module.setStatus(left ? 'Preparing... (' + (this.totalDependencies-left) + '/' + this.totalDependencies + ')' : 'All downloads complete.');
     },
     onRuntimeInitialized: function() {
-      bootElement.disabled = false;
+      if (bootElement) bootElement.disabled = false;
     }
   };
   Module.setStatus('Downloading scsynth...');

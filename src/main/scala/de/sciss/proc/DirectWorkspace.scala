@@ -86,12 +86,13 @@ object DirectWorkspace {
       val sig = in
       Length(sig).poll("in.length")
       val pad = DC(0.0).take(0.5 * SR) ++ sig // avoid stutter in the beginning
-      PhysicalOut(pad)
+      PhysicalOut(0, pad)
     }
 
     lazy val gFSc1 = fscape.Graph {
       import fscape.Ops._
       import fscape.graph._
+      import fscape.lucre.graph._
 
       val n = WhiteNoise()
       val SR = 48000
@@ -105,7 +106,7 @@ object DirectWorkspace {
       //      val sig   = lap
       val sig = f * 100
       Frames(sig.out(0)).poll(Metro(SR), "metro")
-      PhysicalOut(sig)
+      PhysicalOut(0, sig)
     }
 
     def any2stringadd: Any = ()
@@ -113,6 +114,7 @@ object DirectWorkspace {
     lazy val gFScBubbles = fscape.Graph {
       import de.sciss.fscape.lucre.graph.Ops._
       import fscape.graph._
+      import fscape.lucre.graph._
 
       val SR        = 44100
       val fmOff     = "fm-offset" .attr(80)
@@ -125,7 +127,7 @@ object DirectWorkspace {
         val echoL = 0.2 * SR
         CombN(sin, echoL, echoL, 4 * SR) // echoing sine wave
       } Else sin
-      PhysicalOut(sig)
+      PhysicalOut(0, sig)
     }
 
     lazy val gEx = expr.Graph {

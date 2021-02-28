@@ -60,7 +60,7 @@ The current version, no longer building a SoundProcesses structure from scratch 
 source file `DirectWorkspace`), now loads an existing workspace (see `LoadWorkspace`). This is a workspace 
 exported from Mellite as a 'binary blob', the file `workspace.mllt.bin`. The original desktop
 workspace for Mellite is `workspace.mllt`. If you want to test other workspaces, you need to use
-Mellite 3.4.0-SNAPSHOT or newer, and in a workspace’s root folder choose the menu item
+Mellite 3.4.0 or newer, and in a workspace’s root folder choose the menu item
 _File_ > _Export Binary Workspace_, then overwrite `workspace.mllt.bin`. The root folder must
 contain a `Widget` element named `start`, which will be rendered in the browser.
 
@@ -104,12 +104,9 @@ The components or pieces that need to come together:
 
 The following FScape UGens are not yet available:
 
-- [ ] `BufferDisk` __high prio__
 - [ ] `Fourier`
-- [ ] `PitchAC` (needs `BufferDisk`)
 - [ ] `ResampleWindow`
 - [ ] `Slices`
-- [ ] `WPE_Dereverberate` (needs `BufferDisk`)
 
 ## notes
 
